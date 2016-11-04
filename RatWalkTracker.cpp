@@ -286,23 +286,25 @@ void RatWalkTracker::prevFrame() {
 void RatWalkTracker::guardar() {
    std::ofstream ofs (OutputFileName, std::ofstream::out);
    ofs<<"VideoNumber,"<<"Frame,"<<"x1,"<<"y1,"<<"x2,"<<"y2,"<<"x3,"<<"y3,"<<"x4,"<<"y4,"<<"x5,"<<"y5,"<<"T1,"<<"T2,"<<"T3,"<<"T4,"<<"T5\n";
-
    for (int VideoNumber=0;VideoNumber<NumberOfVideos;VideoNumber++) {
        for (int i=0;i<VideoToAnalyze[VideoNumber].NumberOfFrames;i++) {
-           if (VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints>0){
-               ofs<<VideoNumber<<",";
-               ofs<<i<<",";
-               for(int j=0; j< VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints;j++){
-                   ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].x<<",";
-                   ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].y<<", ";
+           RatWalkFrameObject &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
+           if (frame.NumberOfTRegisteredPoints > 0) {
+               ofs<< VideoNumber << "," << i;
+               for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
+                  ofs << "," << frame.TrackedPointsInFrame[j].x
+                      << "," << frame.TrackedPointsInFrame[j].y;
                }
-               for(int j=0; j< VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints;j++){
-                   if (j==VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints-1)
-                       ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].Theta<<"\n";
-                   else
-                       ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].Theta<<",";
+               for (int j = frame.NumberOfTRegisteredPoints; j < frame.NumberOfPointsToTrack; j++) {
+                  ofs << ",,";
                }
-
+               for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
+                  ofs << ',' << frame.TrackedPointsInFrame[j].Theta;
+               }
+               for (int j = frame.NumberOfTRegisteredPoints; j < frame.NumberOfPointsToTrack; j++) {
+                  ofs << ',';
+               }
+               ofs << "\n";
            }
        }
 
