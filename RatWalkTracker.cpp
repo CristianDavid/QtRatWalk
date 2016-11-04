@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 #include <cstdlib>
 #include "opencv2/opencv.hpp"
 #include <unistd.h>
@@ -7,9 +7,12 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <string>
 #include "RatWalkTrackerVideoObject.h"
 #include "RatWalkTracker.h"
 #include "Points.h"
+#include <QDebug>
 
 using namespace cv;
 using namespace std;
@@ -65,55 +68,34 @@ RatWalkTracker::RatWalkTracker(const char *fileName) {
    string delimiterRead = ",";
    if (PreviouslyAnnotatedFile.is_open()) {
        //Get rid of the line with the name of colums
-       getline (PreviouslyAnnotatedFile,lineToParse);
-       while ( getline (PreviouslyAnnotatedFile,lineToParse) ) {
+       getline(PreviouslyAnnotatedFile, lineToParse);
+       while ( getline(PreviouslyAnnotatedFile, lineToParse) ) {
            size_t pos = 0;
            std::string token;
-           int EntryNumber=0;
-           int PointNumber=0;
-           int Points=1;
-           int VideoNumber=0;
-           int FrameNumber=0;
+           int  EntryNumber = 0;
+           int  PointNumber = 0;
+           int  VideoNumber = 0;
+           int  FrameNumber = 0;
+           bool Points = true;
+           std::vector<std::string> tokens;
 
            while ((pos = lineToParse.find(delimiterRead)) != std::string::npos) {
-               token = lineToParse.substr(0, pos);
-               std::cout << token << std::endl;
-               lineToParse.erase(0, pos + delimiterRead.length());
-
-
-               if (EntryNumber==0){ //We are reading the VideoNumber
-                   VideoNumber=stoi(token);
-                   EntryNumber++;
-               }
-               else if (EntryNumber==1){ //We are reading the VideoNumber
-                   FrameNumber=stoi(token);
-                   EntryNumber++;
-               }
-
-
-               else if (EntryNumber==2 && Points==1){
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointNumber].x=stoi(token);
-                   EntryNumber++;
-               }
-               else if (EntryNumber==3 && Points==1){
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointNumber].y=stoi(token);
-                   EntryNumber=2;
-                   PointNumber++;
-                   if (PointNumber>=NpointsToTrack){
-                       Points=0;
-                       PointNumber=0;
-                       VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].NumberOfTRegisteredPoints=NpointsToTrack;
-                   }
-               }
-               else if (Points==0){
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointNumber].Theta=stof(token);
-                   PointNumber++;
-               }
+              token = lineToParse.substr(0, pos);
+              tokens.push_back(token);
+              lineToParse.erase(0, pos + delimiterRead.length());
            }
-           std::cout << lineToParse << std::endl;
 
+           VideoNumber = stoi(tokens[0]);
+           FrameNumber = stoi(tokens[1]);
 
+           RatWalkFrameObject &frame = VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber];
 
+           for (int i = 0; i < NpointsToTrack && !tokens[i*2+2].empty(); i++) {
+               frame.TrackedPointsInFrame[i].x  = stoi(tokens[i*2+2]);
+               frame.TrackedPointsInFrame[i].y  = stoi(tokens[i*2+3]);
+               frame.TrackedPointsInFrame[i].Theta = stod(tokens[i+12]);
+               frame.NumberOfTRegisteredPoints++;
+           }
        }
        myfile.close();
    }
