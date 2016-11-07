@@ -31,24 +31,13 @@ void on_trackbar(int Position, void *param) {
    obj->on_trackbar(Position);
 }
 
-RatWalkTracker::RatWalkTracker(const char *fileName) {
-   NumberOfVideos=0;
+RatWalkTracker::RatWalkTracker(const char *fileName) :
+   ratFile(fileName) {
    CurrentVideoAnalyzed=0;
-   string line[10];
-   ifstream myfile (fileName);
-   if (myfile.is_open()) {
-
-       while ( getline (myfile,line[NumberOfVideos]) ) {
-           cout << line[NumberOfVideos] << '\n';
-           NumberOfVideos++;
-       }
-       myfile.close();
-   }
 
    //Open the video files
-   for (int i = 0; i < NumberOfVideos; i++) {
-      const char *FileNameToRead=line[i].c_str();
-      videoNames.push_back(FileNameToRead);
+   for (int i = 0; i < ratFile.numberOfVideos(); i++) {
+      const char *FileNameToRead = ratFile.getVideoFilenameWithPath(i).c_str();
       if (!VideoToAnalyze[i].OpenVideoFile((char *)FileNameToRead)) {
          cout<<"Video File "<<FileNameToRead <<" Could not be opened";
          return;
@@ -56,15 +45,10 @@ RatWalkTracker::RatWalkTracker(const char *fileName) {
       }
    }
 
-   //Create the outputFile
-   string delimiter = "+";
-   string token =  line[CurrentVideoAnalyzed].substr(0,  line[CurrentVideoAnalyzed].find(delimiter));
-
-   sprintf(OutputFileName, "%s.csv",token.c_str());
-
    //Try to read the previously annotated things
    string lineToParse;
-   ifstream PreviouslyAnnotatedFile (OutputFileName);
+
+   ifstream PreviouslyAnnotatedFile(ratFile.getOutputFilenameWidthPath().c_str());
    string delimiterRead = ",";
    if (PreviouslyAnnotatedFile.is_open()) {
        //Get rid of the line with the name of colums
@@ -72,18 +56,21 @@ RatWalkTracker::RatWalkTracker(const char *fileName) {
        while ( getline(PreviouslyAnnotatedFile, lineToParse) ) {
            size_t pos = 0;
            std::string token;
-           int  EntryNumber = 0;
-           int  PointNumber = 0;
            int  VideoNumber = 0;
            int  FrameNumber = 0;
-           bool Points = true;
            std::vector<std::string> tokens;
 
-           while ((pos = lineToParse.find(delimiterRead)) != std::string::npos) {
+           /*while ((pos = lineToParse.find(delimiterRead)) != std::string::npos) {
               token = lineToParse.substr(0, pos);
               tokens.push_back(token);
               lineToParse.erase(0, pos + delimiterRead.length());
-           }
+           }*/
+           do {
+              pos = lineToParse.find(delimiterRead);
+              token = lineToParse.substr(0, pos);
+              tokens.push_back(token);
+              lineToParse.erase(0, pos + delimiterRead.length());
+           } while (pos != std::string::npos);
 
            VideoNumber = stoi(tokens[0]);
            FrameNumber = stoi(tokens[1]);
@@ -96,8 +83,8 @@ RatWalkTracker::RatWalkTracker(const char *fileName) {
                frame.TrackedPointsInFrame[i].Theta = stod(tokens[i+12]);
                frame.NumberOfTRegisteredPoints++;
            }
+           PointID = std::min(NpointsToTrack-1, frame.NumberOfTRegisteredPoints);
        }
-       myfile.close();
    }
    else{
        cout<<"\n No previous annotated data";
@@ -105,7 +92,7 @@ RatWalkTracker::RatWalkTracker(const char *fileName) {
 }
 
 int RatWalkTracker::ratWalkMain() {
-   for (CurrentVideoAnalyzed=0;CurrentVideoAnalyzed<NumberOfVideos;CurrentVideoAnalyzed++){
+   for (CurrentVideoAnalyzed=0;CurrentVideoAnalyzed<ratFile.numberOfVideos();CurrentVideoAnalyzed++){
         //VideoToAnalyze.OpenLiveStream(0); Not readu Yet
         
         
@@ -197,11 +184,11 @@ int RatWalkTracker::ratWalkMain() {
                         cout<<"\n Points are Saved";
 
 
-                        std::ofstream ofs (OutputFileName, std::ofstream::out);
+                        std::ofstream ofs (ratFile.getOutputFilenameWidthPath().c_str(), std::ofstream::out);
                         ofs<<"VideoNumber,"<<"Frame,"<<"x1,"<<"y1,"<<"x2,"<<"y2,"<<"x3,"<<"y3,"<<"x4,"<<"y4,"<<"x5,"<<"y5,"<<"T1,"<<"T2,"<<"T3,"<<"T4,"<<"T5\n";
 
 
-                        for (int VideoNumber=0;VideoNumber<NumberOfVideos;VideoNumber++){
+                        for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
 
                             for (int i=0;i<VideoToAnalyze[VideoNumber].NumberOfFrames;i++){
                                 if (VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints>0){
@@ -266,9 +253,9 @@ void RatWalkTracker::prevFrame() {
 }
 
 void RatWalkTracker::guardar() {
-   std::ofstream ofs (OutputFileName, std::ofstream::out);
+   std::ofstream ofs (ratFile.getOutputFilenameWidthPath().c_str(), std::ofstream::out);
    ofs<<"VideoNumber,"<<"Frame,"<<"x1,"<<"y1,"<<"x2,"<<"y2,"<<"x3,"<<"y3,"<<"x4,"<<"y4,"<<"x5,"<<"y5,"<<"T1,"<<"T2,"<<"T3,"<<"T4,"<<"T5\n";
-   for (int VideoNumber=0;VideoNumber<NumberOfVideos;VideoNumber++) {
+   for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
        for (int i=0;i<VideoToAnalyze[VideoNumber].NumberOfFrames;i++) {
            RatWalkFrameObject &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
            if (frame.NumberOfTRegisteredPoints > 0) {
@@ -343,7 +330,7 @@ const RatWalkTrackerVideoObject &RatWalkTracker::getCurrentVideoAnalyzed() {
 }
 
 const std::vector<string> &RatWalkTracker::getVideoNames() {
-   return videoNames;
+   return ratFile.getVideoNames();
 }
 
 void RatWalkTracker::setCurrentVideo(int index) {

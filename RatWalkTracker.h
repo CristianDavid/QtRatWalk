@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "RatWalkTrackerVideoObject.h"
+#include "RatWalkFile.h"
 
 #define HalfWindowSize 9
 #define NpointsToTrack 5
@@ -34,11 +35,9 @@ class RatWalkTracker {
 
  private:
    RatWalkTrackerVideoObject VideoToAnalyze[3];
-   std::vector<std::string> videoNames;
    int CurrentVideoAnalyzed = 0;
    int PointID = 0;
-   int NumberOfVideos;
-   char OutputFileName[400];
+   RatWalkFile ratFile;
 };
 
 #endif // RATWALKTRACKER_H

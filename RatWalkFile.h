@@ -9,8 +9,12 @@ class RatWalkFile {
  public:
    RatWalkFile(const char *filename);
    const std::string &getVideoFilename(int idx);
+   const std::string &getOutputFilename();
+   std::string getVideoFilenameWithPath(int idx);
+   std::string getOutputFilenameWidthPath();
    std::string getProjectName();
    std::string getProjectPath();
+   const std::vector<std::string> &getVideoNames();
    int numberOfVideos();
  private:
    QFileInfo projectFileInfo;
