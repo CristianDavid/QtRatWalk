@@ -1,6 +1,8 @@
 #include <algorithm>
 #include "RatWalkTrackerVideoObject.h"
 
+using namespace cv;
+
 int RatWalkTrackerVideoObject::OpenVideoFile(char VideoFileName[]){
    videoObject.open(VideoFileName);
    if(!videoObject.isOpened())  // check if we succeeded
@@ -86,10 +88,10 @@ void RatWalkTrackerVideoObject::ShowSkeletonInCurrentFrame(){
   cv::Mat CurrentFrameWithSkeleton=CurrentFrameData.clone();
   int NumberOfPointsToShow=FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;
   for (int i=1;i<NumberOfPointsToShow;i++){
-      int x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].x);
-      int y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].y);
-      int x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].x);
-      int y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].y);
+      int x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].CoorX);
+      int y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].CoorY);
+      int x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].CoorX);
+      int y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].CoorY);
       cv::circle(CurrentFrameWithSkeleton, cv::Point(x1,y1),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
       cv::circle(CurrentFrameWithSkeleton, cv::Point(x2,y2),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
       cv::line(CurrentFrameWithSkeleton, cv::Point(x1,y1), cv::Point(x2,y2), cv::Scalar(0,200,0), 2, CV_AA );
@@ -104,10 +106,10 @@ void RatWalkTrackerVideoObject::ShowSkeletonInCurrentFrame(){
 
       if (i==4){
           //Show the pendular movement
-           x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].x);
-           y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].y);
-           x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].x);
-           y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].y);
+           x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorX);
+           y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorY);
+           x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorX);
+           y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorY);
           cv::line(CurrentFrameWithSkeleton, cv::Point(x1,y1), cv::Point(x2,y2), cv::Scalar(0,200,200), 2, CV_AA );
 
           //Draw the angle
@@ -126,23 +128,68 @@ void RatWalkTrackerVideoObject::ShowSkeletonInCurrentFrame(){
   char str[200];
   std::sprintf(str,"Frame %d",CurrentFrame);
   cv::putText(CurrentFrameWithSkeleton, str, cv::Point2f(10,20), cv::FONT_HERSHEY_SIMPLEX, .5,  cv::Scalar(0,0,0,255),2);
-
   //imshow("RatWalkVideo", CurrentFrameWithSkeleton);
 }
 
 
-void RatWalkTrackerVideoObject::ShowFrameWithTrackingPoints(){
+void RatWalkTrackerVideoObject::ShowFrameWithTrackingPoints() {
   cv::Mat FrameWithRectangle = CurrentFrameData.clone();
   for (int PointToShow=0;PointToShow<FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;PointToShow++)
-      cv::circle(FrameWithRectangle, cv::Point((int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].x),(int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].y)),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
+      cv::circle(FrameWithRectangle, cv::Point((int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorX),(int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorY)),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
   cv::imshow("RatWalkVideo", FrameWithRectangle);
 
+}
+
+//Function to show the skeleton in the current frame
+void RatWalkTrackerVideoObject::ShowSkeletonInCurrentTransformedFrame(cv::Mat TransformedFrame) {
+   cv::Mat CurrentFrameWithSkeleton=TransformedFrame.clone();
+   int NumberOfPointsToShow=FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;
+   for (int i=1;i<NumberOfPointsToShow;i++){
+       int x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].CoorXCorrected);
+       int y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].CoorYCorrected);
+       int x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].CoorXCorrected);
+       int y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].CoorYCorrected);
+       circle(CurrentFrameWithSkeleton, Point(x1,y1),3, Scalar(0,0,255),CV_FILLED, 1,0);
+       circle(CurrentFrameWithSkeleton, Point(x2,y2),3, Scalar(0,0,255),CV_FILLED, 1,0);
+       cv::line(CurrentFrameWithSkeleton, Point(x1,y1), Point(x2,y2), cv::Scalar(0,200,0), 2, CV_AA );
+
+       //Draw the angle
+       cv::line(CurrentFrameWithSkeleton, Point(x1-20,y1), Point(x1+20,y1), cv::Scalar(255,255,0), .5, CV_AA );
+       cv::line(CurrentFrameWithSkeleton, Point(x1,y1-20), Point(x1,y1+20), cv::Scalar(255,255,0), .5, CV_AA );
+       std::ostringstream strs;
+       strs << FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].ThetaCorrected;
+       string Angle=strs.str();
+       putText(CurrentFrameWithSkeleton, Angle, Point2f(x1,y1), FONT_HERSHEY_SIMPLEX, .5,  Scalar(255,255,255,255),1);
+
+       if (i==4){
+           //Show the pendular movement
+           x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorXCorrected);
+           y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorYCorrected);
+           x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorXCorrected);
+           y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorYCorrected);
+           cv::line(CurrentFrameWithSkeleton, Point(x1,y1), Point(x2,y2), cv::Scalar(0,200,200), 2, CV_AA );
+
+           //Draw the angle
+           std::ostringstream strs;
+           strs << FrameProperties[CurrentFrame].TrackedPointsInFrame[4].ThetaCorrected;
+           string Angle=strs.str();
+           putText(CurrentFrameWithSkeleton, Angle, Point2f(x1,y1+20), FONT_HERSHEY_SIMPLEX, .8,  Scalar(0,255,255,255),1);
+
+
+       }
+   }
+
+   char str[200];
+   sprintf(str,"Frame %d",CurrentFrame);
+   putText(CurrentFrameWithSkeleton, str, Point2f(10,20), FONT_HERSHEY_SIMPLEX, .5,  Scalar(0,0,0,255),2);
+
+   imshow("RatWalkVideoCorrected", CurrentFrameWithSkeleton);
 }
 
 cv::Mat RatWalkTrackerVideoObject::getFrameWithTrackingPoints() {
    cv::Mat FrameWithRectangle = CurrentFrameData.clone();
    for (int PointToShow=0;PointToShow<FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;PointToShow++)
-       cv::circle(FrameWithRectangle, cv::Point((int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].x),(int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].y)),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
+       cv::circle(FrameWithRectangle, cv::Point((int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorX),(int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorY)),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
    return FrameWithRectangle;
 }
 
@@ -150,10 +197,10 @@ cv::Mat RatWalkTrackerVideoObject::getFrameWithSkeleton() {
    cv::Mat CurrentFrameWithSkeleton=CurrentFrameData.clone();
    int NumberOfPointsToShow=FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;
    for (int i=1;i<NumberOfPointsToShow;i++){
-       int x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].x);
-       int y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].y);
-       int x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].x);
-       int y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].y);
+       int x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].CoorX);
+       int y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i-1].CoorY);
+       int x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].CoorX);
+       int y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[i].CoorY);
        cv::circle(CurrentFrameWithSkeleton, cv::Point(x1,y1),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
        circle(CurrentFrameWithSkeleton, cv::Point(x2,y2),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
        cv::line(CurrentFrameWithSkeleton, cv::Point(x1,y1), cv::Point(x2,y2), cv::Scalar(0,200,0), 2, CV_AA );
@@ -168,10 +215,10 @@ cv::Mat RatWalkTrackerVideoObject::getFrameWithSkeleton() {
 
        if (i==4){
            //Show the pendular movement
-            x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].x);
-            y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].y);
-            x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].x);
-            y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].y);
+            x1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorX);
+            y1=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorY);
+            x2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorX);
+            y2=round(FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorY);
            cv::line(CurrentFrameWithSkeleton, cv::Point(x1,y1), cv::Point(x2,y2), cv::Scalar(0,200,200), 2, CV_AA );
 
            //Draw the angle
@@ -215,7 +262,8 @@ cv::Mat RatWalkTrackerVideoObject::getZoomedRegion(int x, int y, int halfWindowS
    return SegmentedZoomedImageRegion;
 }
 
-void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, int PointId){
+// TODO ver que esta función compile
+void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, int PointId, int CurrentVideoAnalyzed){
 
   std::cout<<"\n CoorX="<<x<<" CoorY="<<y;
 
@@ -274,17 +322,17 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
   //imshow("RatWalkVideo", FrameWithRectangle);
 
   RatWalkFrameObject &currentFrame = FrameProperties[CurrentFrame];
-  currentFrame.TrackedPointsInFrame[PointId].x=x;
-  currentFrame.TrackedPointsInFrame[PointId].y=y;
+  currentFrame.TrackedPointsInFrame[PointId].CoorX=x;
+  currentFrame.TrackedPointsInFrame[PointId].CoorY=y;
   if (currentFrame.NumberOfTRegisteredPoints < 5) {
       currentFrame.NumberOfTRegisteredPoints++;
   }
 
   if (PointId>0){
-      double xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].x;
-      double ya=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].y;
-      double xb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].x;
-      double yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].y;
+      double xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].CoorX;
+      double ya=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].CoorY;
+      double xb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorX;
+      double yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorY;
 
       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
       FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].Theta=Angle;
@@ -292,18 +340,15 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
   }
 
   if (PointId==4){
-      double xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[0].x;
-      double ya=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[0].y;
-      double xb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].x;
-      double yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].y;
+      double xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorX;
+      double ya=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorY;
+      double xb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorX;
+      double yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorY;
 
       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
       FrameProperties[CurrentFrame].TrackedPointsInFrame[4].Theta=Angle;
 
   }
-
-
-
 }
 
 
@@ -453,8 +498,8 @@ resize(new_image, SegmentedZoomedImageRegion, dsize);
   imshow("ZoomedRegion", SegmentedZoomedImageRegion);
   imshow("RatWalkVideo", FrameWithRectangle);
 
-  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].x=MeanX;
-  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].y=MeanY;
+  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorX=MeanX;
+  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorY=MeanY;
   FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].MarkerColor=SampleColor;
 }
 
@@ -617,8 +662,8 @@ int RatWalkTrackerVideoObject::SegmentRegionFromColorStatistics(int x, int y, in
   imshow("RatWalkVideo", FrameWithRectangle);
 //   int kk=waitKey(0);
 
-  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].x=MeanX;
-  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].y=MeanY;
+  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorX=MeanX;
+  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorY=MeanY;
   FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].MarkerColor=CentroidColor;
   return 1;
 

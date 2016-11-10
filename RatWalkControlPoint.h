@@ -9,8 +9,10 @@
 
 class RatWalkControlPoint {
 public:
-   int x, y;
+   int CoorX, CoorY;
+   int CoorXCorrected, CoorYCorrected;
    double Theta;
+   double ThetaCorrected;
    cv::Vec3b MarkerColor;
 };
 

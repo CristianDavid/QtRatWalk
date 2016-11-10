@@ -56,12 +56,16 @@ void MainWindow::showZoomedRegion(QPoint point, int frameWidth, int frameHeight)
 }
 
 void MainWindow::on_actionOpen_triggered() {
-   on_actionClose_triggered();
-   ui->actionClose->setEnabled(true);
    int numberOfFrames;
    QString fileName = QFileDialog::getOpenFileName(this, "Open videos",
                             QString(),
                            "RatWalk Files (*.rat);;Other Files (*)");
+   if (fileName.isNull()) {
+      return;
+   }
+   on_actionClose_triggered();
+   ui->actionClose->setEnabled(true);
+   ui->actionGuardar->setEnabled(true);
    ratWalkTracker = new RatWalkTracker(fileName.toStdString().c_str());
    numberOfFrames = ratWalkTracker->getCurrentVideoAnalyzed().NumberOfFrames;
    ui->ratWalkFrame->setEnabled(true);
@@ -201,8 +205,13 @@ void MainWindow::on_actionClose_triggered() {
    ui->twProjecto->clear();
    ui->pnlFrame->setImage(QImage());
    ui->actionClose->setEnabled(false);
+   ui->actionGuardar->setEnabled(false);
 }
 
 void MainWindow::on_pushButton_clicked() {
 
+}
+
+void MainWindow::on_actionGuardar_triggered() {
+   ratWalkTracker->guardar();
 }

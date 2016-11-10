@@ -29,6 +29,8 @@ private slots:
 
    void on_pushButton_clicked();
 
+   void on_actionGuardar_triggered();
+
 protected:
    void mousePressEvent(  QMouseEvent *event);
    void mouseReleaseEvent(QMouseEvent *event);
