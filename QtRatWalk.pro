@@ -28,7 +28,8 @@ HEADERS  += MainWindow.h \
     cvMat2QtImage.h \
     ImageViewer.h \
     Points.h \
-    RatWalkFile.h
+    RatWalkFile.h \
+    RatWalkConstantes.h
 
 FORMS    += MainWindow.ui
 

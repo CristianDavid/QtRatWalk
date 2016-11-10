@@ -1,4 +1,5 @@
 #include <algorithm>
+#include "RatWalkConstantes.h"
 #include "RatWalkTrackerVideoObject.h"
 
 using namespace cv;
@@ -321,12 +322,32 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
   //imshow("ZoomedRegion", SegmentedZoomedImageRegion);
   //imshow("RatWalkVideo", FrameWithRectangle);
 
+  //   Src[0]=cvPoint(x*ImageToShowDivider, y*ImageToShowDivider);
+  //   cv::perspectiveTransform(Src, Dst,MatchImageToMapTransform);
+  //   float SearchY=Dst[0].y;
+  //    float SearchX=Dst[0].x;
+
+
+  // AQUI HAY QUE CALCULAR LAS COORDENADAS CORREGIDAS!!!!!!!
+  std::vector<Point2f> vec;
+  std::vector<Point2f> vecCorrected;
+  vec.push_back(Point2f(x,y));
+  if (CurrentVideoAnalyzed==0)
+    cv::perspectiveTransform(vec,vecCorrected, HLeft);
+  if (CurrentVideoAnalyzed==1)
+    cv::perspectiveTransform(vec,vecCorrected, HMiddle);
+  if (CurrentVideoAnalyzed==2)
+    cv::perspectiveTransform(vec,vecCorrected, HRight);
+
   RatWalkFrameObject &currentFrame = FrameProperties[CurrentFrame];
   currentFrame.TrackedPointsInFrame[PointId].CoorX=x;
   currentFrame.TrackedPointsInFrame[PointId].CoorY=y;
   if (currentFrame.NumberOfTRegisteredPoints < 5) {
       currentFrame.NumberOfTRegisteredPoints++;
   }
+
+  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorXCorrected=vecCorrected[0].x;
+  FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorYCorrected=vecCorrected[0].y;
 
   if (PointId>0){
       double xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].CoorX;
@@ -336,6 +357,14 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
 
       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
       FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].Theta=Angle;
+
+      xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].CoorXCorrected;
+      ya=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].CoorYCorrected;
+      xb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorXCorrected;
+      yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].CoorYCorrected;
+
+      Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
+      FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
 
   }
 
@@ -347,6 +376,14 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
 
       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
       FrameProperties[CurrentFrame].TrackedPointsInFrame[4].Theta=Angle;
+
+      xa=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorXCorrected;
+      ya=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[0].CoorYCorrected;
+      xb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorXCorrected;
+      yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorYCorrected;
+
+      Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
+      FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
 
   }
 }

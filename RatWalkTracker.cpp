@@ -13,7 +13,10 @@
 #include "RatWalkTrackerVideoObject.h"
 #include "RatWalkTracker.h"
 #include "Points.h"
+#include "RatWalkConstantes.h"
 #include <QDebug>
+
+cv::Mat HLeft, HMiddle, HRight; // extern global variables
 
 using namespace cv;
 using namespace std;
@@ -294,7 +297,7 @@ void RatWalkTracker::traeEsqueleto() {
          for (int i = 0; i < prevFrame.NumberOfTRegisteredPoints; i++) {
             RatWalkControlPoint p = prevFrame.TrackedPointsInFrame[i];
 
-            currentVideo.SelectPoint(p.CoorX, p.CoorY, HalfWindowSize, i);
+            currentVideo.SelectPoint(p.CoorX, p.CoorY, HalfWindowSize, i, CurrentVideoAnalyzed);
             //currentFrame.SetTrackedPoints(i, p.x, p.y);
          }
          PointID = std::min(NpointsToTrack-1, currentFrame.NumberOfTRegisteredPoints);
@@ -308,7 +311,7 @@ void RatWalkTracker::traeEsqueleto() {
           x    = step,
           y    = currentVideo.Height / 2;
       for (int i = 0; i < 5; i++, x += step) {
-         currentVideo.SelectPoint(x, y, HalfWindowSize, i);
+         currentVideo.SelectPoint(x, y, HalfWindowSize, i, CurrentVideoAnalyzed);
       }
    }
 }
@@ -349,7 +352,7 @@ void RatWalkTracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int fr
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   currentVideo.SelectPoint(x2, y2, HalfWindowSize, PointID);
+   currentVideo.SelectPoint(x2, y2, HalfWindowSize, PointID, CurrentVideoAnalyzed);
    PointID = std::min(PointID+1, NpointsToTrack-1);
 }
 
@@ -359,7 +362,7 @@ void RatWalkTracker::setPointOnCurrentFrame(int pointId, int x, int y,
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   currentVideo.SelectPoint(x2, y2, HalfWindowSize, pointId);
+   currentVideo.SelectPoint(x2, y2, HalfWindowSize, pointId, CurrentVideoAnalyzed);
 }
 
 int RatWalkTracker::getClosestPointID(int x, int y, int frameWidth,
@@ -389,7 +392,7 @@ void RatWalkTracker::mouseHandlerForInitialTrackingPoints(int event, int x, int 
    if (event == CV_EVENT_LBUTTONDOWN)
    {
 
-       VideoToAnalyze[CurrentVideoAnalyzed].SelectPoint(x, y, HalfWindowSize, PointID);
+       VideoToAnalyze[CurrentVideoAnalyzed].SelectPoint(x, y, HalfWindowSize, PointID, CurrentVideoAnalyzed);
        // VideoToAnalyze.ShowSkeletonInCurrentFrame();
 
    }
