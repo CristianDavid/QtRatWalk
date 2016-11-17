@@ -34,6 +34,10 @@ class RatWalkTracker {
    void setCurrentVideo(int index);
 
  private:
+   cv::Mat TargetImage, TargetImageGray,
+           Image1,     Image2,       Image3,
+           ImageLeft,  ImageMiddle,  ImageRight,
+           ImageLeftG, ImageMiddleG, ImageRightG, TargetImageGrayG;
    RatWalkTrackerVideoObject VideoToAnalyze[3];
    int CurrentVideoAnalyzed = 0;
    int PointID = 0;

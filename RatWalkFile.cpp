@@ -20,7 +20,8 @@ RatWalkFile::RatWalkFile(const char *filename):
    std::string delimiter = "+";
    std::string token =  videoFilenames[0].substr(0,  videoFilenames[0].find(delimiter));
 
-   outputFilename = token + ".csv";
+   OutputFilename          = token + ".csv";
+   OutputFilenameCorrected = token + "_Corrected.csv";
 }
 
 const std::string &RatWalkFile::getVideoFilename(int idx) {
@@ -28,7 +29,7 @@ const std::string &RatWalkFile::getVideoFilename(int idx) {
 }
 
 const std::string &RatWalkFile::getOutputFilename() {
-   return outputFilename;
+   return OutputFilename;
 }
 
 std::string RatWalkFile::getVideoFilenameWithPath(int idx) {
@@ -38,7 +39,12 @@ std::string RatWalkFile::getVideoFilenameWithPath(int idx) {
 
 std::string RatWalkFile::getOutputFilenameWidthPath() {
    return getProjectPath() + QDir::separator().toLatin1()
-                           + getOutputFilename();
+         + getOutputFilename();
+}
+
+std::string RatWalkFile::getOutputFilenameCorrected() {
+   return getProjectPath() + QDir::separator().toLatin1()
+                           + OutputFilenameCorrected;
 }
 
 std::string RatWalkFile::getProjectName() {

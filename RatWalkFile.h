@@ -12,6 +12,7 @@ class RatWalkFile {
    const std::string &getOutputFilename();
    std::string getVideoFilenameWithPath(int idx);
    std::string getOutputFilenameWidthPath();
+   std::string getOutputFilenameCorrected();
    std::string getProjectName();
    std::string getProjectPath();
    const std::vector<std::string> &getVideoNames();
@@ -19,7 +20,8 @@ class RatWalkFile {
  private:
    QFileInfo projectFileInfo;
    std::vector<std::string> videoFilenames;
-   std::string outputFilename;
+   std::string OutputFilename;
+   std::string OutputFilenameCorrected;
 };
 
 #endif // RATWALKFILE_H

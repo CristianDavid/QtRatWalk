@@ -263,7 +263,6 @@ cv::Mat RatWalkTrackerVideoObject::getZoomedRegion(int x, int y, int halfWindowS
    return SegmentedZoomedImageRegion;
 }
 
-// TODO ver que esta función compile
 void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, int PointId, int CurrentVideoAnalyzed){
 
   std::cout<<"\n CoorX="<<x<<" CoorY="<<y;
