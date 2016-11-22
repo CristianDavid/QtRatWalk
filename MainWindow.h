@@ -27,8 +27,6 @@ private slots:
    void on_twProjecto_doubleClicked(const QModelIndex &index);
    void on_actionClose_triggered();
 
-   void on_pushButton_clicked();
-
    void on_actionGuardar_triggered();
 
 protected:

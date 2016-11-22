@@ -44,7 +44,12 @@ std::string RatWalkFile::getOutputFilenameWidthPath() {
 
 std::string RatWalkFile::getOutputFilenameCorrected() {
    return getProjectPath() + QDir::separator().toLatin1()
-                           + OutputFilenameCorrected;
+         + OutputFilenameCorrected;
+}
+
+std::string RatWalkFile::getTargetFilename() {
+   return getProjectPath() + QDir::separator().toLatin1()
+         + "CalibrationLettersTarget.png";
 }
 
 std::string RatWalkFile::getProjectName() {

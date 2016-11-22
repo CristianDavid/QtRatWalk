@@ -13,6 +13,7 @@ class RatWalkFile {
    std::string getVideoFilenameWithPath(int idx);
    std::string getOutputFilenameWidthPath();
    std::string getOutputFilenameCorrected();
+   std::string getTargetFilename();
    std::string getProjectName();
    std::string getProjectPath();
    const std::vector<std::string> &getVideoNames();

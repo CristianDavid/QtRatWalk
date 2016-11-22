@@ -60,8 +60,9 @@ RatWalkTracker::RatWalkTracker(const char *fileName) :
    //PERFORM THE CORRECTION OF THE VIDEOS
    /////////////
 
-       Mat OriginalTargetImage= imread( "CalibrationLettersTarget.png" );
-       //Mat OriginalTargetImage= imread( "CalibrationShoes.png" );
+       std::string targetFilename = ratFile.getTargetFilename();
+       Mat OriginalTargetImage= imread(targetFilename);
+       //Mat OriginalTargetImage= imread( "CalibrationShoes.png");
        double Scale=480/(double)OriginalTargetImage.rows;
        resize(OriginalTargetImage, TargetImage, Size(0,0),Scale,Scale,INTER_LINEAR);
        cvtColor(TargetImage, TargetImageGrayG, CV_RGB2GRAY);

@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = QtRatWalk
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         MainWindow.cpp \
     RatWalkTracker.cpp \

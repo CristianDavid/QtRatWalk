@@ -208,10 +208,6 @@ void MainWindow::on_actionClose_triggered() {
    ui->actionGuardar->setEnabled(false);
 }
 
-void MainWindow::on_pushButton_clicked() {
-
-}
-
 void MainWindow::on_actionGuardar_triggered() {
    ratWalkTracker->guardar();
 }
