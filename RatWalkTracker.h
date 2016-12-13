@@ -17,11 +17,11 @@ class RatWalkTracker {
    void addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight);
    void setPointOnCurrentFrame(int pointId, int x, int y,
                                int frameWidth, int frameHeight);
+   void deletePointOnCurrentFrame(int pointId);
    int getClosestPointID(int x, int y, int frameWidth, int frameHeight,
                          double minDistance = 1.0);
    int SelectFrameForAddingTrackingPoints();
    void on_trackbar(int Position);
-   int ratWalkMain();
    void nextFrame();
    void prevFrame();
    void guardar();

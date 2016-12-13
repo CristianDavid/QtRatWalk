@@ -430,153 +430,6 @@ RatWalkTracker::RatWalkTracker(const char *fileName) :
    }
 }
 
-int RatWalkTracker::ratWalkMain() {
-   for (CurrentVideoAnalyzed=0;CurrentVideoAnalyzed<ratFile.numberOfVideos();CurrentVideoAnalyzed++){
-        //VideoToAnalyze.OpenLiveStream(0); Not readu Yet
-        
-        
-        //***********************************************************
-        //Create a Window to display the video
-        //***********************************************************
-        namedWindow("RatWalkVideo",CV_WINDOW_AUTOSIZE);
-        //imshow("RatWalkVideo", VideoToAnalyze.CurrentFrameData);
-        int alpha_slider=0;
-        int alpha_slider_max=VideoToAnalyze[CurrentVideoAnalyzed].NumberOfFrames;
-        createTrackbar( "FrameNumberTrackBar", "RatWalkVideo", &alpha_slider, alpha_slider_max, ::on_trackbar, this );
-        
-        
-        //Window for the zoomed region
-        namedWindow("ZoomedRegion",CV_WINDOW_AUTOSIZE);
-        
-        //Show a Diagram with the points to Select
-        //namedWindow("RatSkeletonControlPoints",CV_WINDOW_AUTOSIZE);
-        //Read the Hip Conttol Point Skeleton Image
-        Mat SkeletonImage;
-        
-        VideoToAnalyze[CurrentVideoAnalyzed].ShowSkeletonInCurrentFrame();
-        
-        while(1){
-            
-            //***********************************************************
-            //Selec the frame to draw the points----------------------------------
-            //***********************************************************
-            cout<<"\n Please select a frame and add ponts pressing k";
-            cout<<"CurrentFrame "<<VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame<<"\n";
-            int Continue=SelectFrameForAddingTrackingPoints();
-            
-
-            
-            
-            if (Continue==0)
-                break;
-            
-            //***********************************************************
-            //Selec the points to track----------------------------------
-            //***********************************************************
-            bool SelectingTrakingPoints=true;
-            char PressedKey;
-            cout<<"\n Please select all the points to track";
-            
-            if ( VideoToAnalyze[CurrentVideoAnalyzed].FrameProperties[VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame].NumberOfTRegisteredPoints>0)
-                VideoToAnalyze[CurrentVideoAnalyzed].FrameProperties[VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame].NumberOfTRegisteredPoints=0;
-            
-            
-            
-            //resizeWindow("RatSkeletonControlPoints",  100 ,  100);
-            
-            cvSetMouseCallback("RatWalkVideo", ::mouseHandlerForInitialTrackingPoints, this);
-            while (SelectingTrakingPoints)
-            {
-                
-                
-                /*
-                 
-                 //Define the image to show depending in the point to be selected
-                 if (PointID==0)
-                 SkeletonImage = imread("RatSkeletonFrontHip.png", CV_LOAD_IMAGE_COLOR);   // Read the file
-                 if (PointID==1)
-                 SkeletonImage = imread("RatSkeletonFrontFemur.png", CV_LOAD_IMAGE_COLOR);   // Read the file
-                 if (PointID==2)
-                 SkeletonImage = imread("RatSkeletonFrontKnee.png", CV_LOAD_IMAGE_COLOR);   // Read the file
-                 if (PointID==3)
-                 SkeletonImage = imread("RatSkeletonFrontTalon.png", CV_LOAD_IMAGE_COLOR);   // Read the file
-                 if (PointID==4)
-                 SkeletonImage = imread("RatSkeletonFrontFeet.png", CV_LOAD_IMAGE_COLOR);   // Read the file
-                 //n   imshow("RatSkeletonControlPoints", SkeletonImage); //Show it
-                 */
-                
-                
-                PressedKey= waitKey(1);
-                
-                if (PressedKey == 'N' || PressedKey == 'n')
-                {
-                    PointID++;
-                    VideoToAnalyze[CurrentVideoAnalyzed].FrameProperties[VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame].NumberOfTRegisteredPoints++;
-                    VideoToAnalyze[CurrentVideoAnalyzed].ShowSkeletonInCurrentFrame();
-                    //If the five points have been selected, then we start the tracking process
-                    if (PointID==NpointsToTrack){
-                        //cvLine(CvArr* img, CvPoint pt1, CvPoint pt2, CvScalar color, int thickness=1, int line_type=8, int shift=0 )
-                        SelectingTrakingPoints=false;
-                        cout<<"Now select a new frame";
-                        PointID=0;
-
-                        cout<<"\n Points are Saved";
-
-
-                        std::ofstream ofs (ratFile.getOutputFilenameWidthPath().c_str(), std::ofstream::out);
-                        ofs<<"VideoNumber,"<<"Frame,"<<"x1,"<<"y1,"<<"x2,"<<"y2,"<<"x3,"<<"y3,"<<"x4,"<<"y4,"<<"x5,"<<"y5,"<<"T1,"<<"T2,"<<"T3,"<<"T4,"<<"T5\n";
-
-
-                        for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
-
-                            for (int i=0;i<VideoToAnalyze[VideoNumber].NumberOfFrames;i++){
-                                if (VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints>0){
-                                    ofs<<VideoNumber<<",";
-                                    ofs<<i<<",";
-                                    for(int j=0; j< VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints;j++){
-                                        ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].CoorX<<",";
-                                        ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].CoorY<<", ";
-                                    }
-                                    for(int j=0; j< VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints;j++){
-                                        if (j==VideoToAnalyze[VideoNumber].FrameProperties[i].NumberOfTRegisteredPoints-1)
-                                            ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].Theta<<"\n";
-                                        else
-                                            ofs<<VideoToAnalyze[VideoNumber].FrameProperties[i].TrackedPointsInFrame[j].Theta<<",";
-                                    }
-
-                                }
-                            }
-
-                        }
-                        ofs.close();
-
-                    }
-                    else
-                        cout<<"Select the next point";
-                }
-
-                
-             //   if (PressedKey == 'S' || PressedKey == 's'){
-                    //Save the Points
-
-              //  }
-                
-                
-                
-                
-                
-            }
-            
-            
-        }
-        destroyAllWindows();
-        
-        VideoToAnalyze[CurrentVideoAnalyzed].RelaseVideo();
-        return 0;
-    }
-   return 0;
-}
-
 void RatWalkTracker::nextFrame() {
    RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    currentVideo.GetNextFrame();
@@ -707,6 +560,16 @@ void RatWalkTracker::setPointOnCurrentFrame(int pointId, int x, int y,
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
    currentVideo.SelectPoint(x2, y2, HalfWindowSize, pointId, CurrentVideoAnalyzed);
+}
+
+void RatWalkTracker::deletePointOnCurrentFrame(int pointId) {
+   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+   RatWalkFrameObject &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
+   auto iter = currentFrame.TrackedPointsInFrame.begin() + pointId;
+   currentFrame.TrackedPointsInFrame.erase(iter);
+   currentFrame.TrackedPointsInFrame.push_back(RatWalkControlPoint());
+   currentFrame.NumberOfTRegisteredPoints--;
+   currentFrame.NumberOfTRegisteredPoints = PointID;
 }
 
 int RatWalkTracker::getClosestPointID(int x, int y, int frameWidth,

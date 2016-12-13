@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include <QString>
 #include <QDebug>
+#include <QAction>
 #include <QLayout>
 #include <QMouseEvent>
 #include <QLabel>
@@ -13,6 +14,7 @@
 #include <QPixmap>
 #include <QImage>
 #include <QStringList>
+#include <QMenu>
 #include <ImageViewer.h>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -55,6 +57,11 @@ void MainWindow::showZoomedRegion(QPoint point, int frameWidth, int frameHeight)
       zoomedRegionWindow->show();
 }
 
+void MainWindow::on_actionBorrarPunto_triggered() {
+   ratWalkTracker->deletePointOnCurrentFrame(ui->actionBorrarPunto->data().toInt());
+   reloadFrame();
+}
+
 void MainWindow::on_actionOpen_triggered() {
    int numberOfFrames;
    QString fileName = QFileDialog::getOpenFileName(this, "Open videos",
@@ -69,7 +76,9 @@ void MainWindow::on_actionOpen_triggered() {
    ratWalkTracker = new RatWalkTracker(fileName.toStdString().c_str());
    numberOfFrames = ratWalkTracker->getCurrentVideoAnalyzed().NumberOfFrames;
    ui->ratWalkFrame->setEnabled(true);
-   ui->horizontalSlider->setMaximum(numberOfFrames);
+   ui->horizontalSlider->setMaximum(numberOfFrames-1);
+   ui->spinBoxCambiarFrame->setMinimum(0);
+   ui->spinBoxCambiarFrame->setMaximum(numberOfFrames-1);
    reloadFrame();
    QFileInfo fileInfo(fileName);
    QStringList projectName(fileInfo.fileName());
@@ -85,18 +94,43 @@ void MainWindow::on_actionOpen_triggered() {
 }
 
 void MainWindow::on_btnPrev_clicked() {
+   bool signalsEnabled;
    ratWalkTracker->prevFrame();
+   int  currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+
+   signalsEnabled = ui->horizontalSlider->blockSignals(true);
+   ui->horizontalSlider->setValue(currentFrame);
+   ui->horizontalSlider->blockSignals(signalsEnabled);
+
+   signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
+   ui->spinBoxCambiarFrame->setValue(currentFrame);
+   ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
+
    reloadFrame();
 }
 
 void MainWindow::on_btnNext_clicked() {
+   bool signalsEnabled;
    ratWalkTracker->nextFrame();
    ratWalkTracker->guardar();
+   int  currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+
+   signalsEnabled = ui->horizontalSlider->blockSignals(true);
+   ui->horizontalSlider->setValue(currentFrame);
+   ui->horizontalSlider->blockSignals(signalsEnabled);
+
+   signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
+   ui->spinBoxCambiarFrame->setValue(currentFrame);
+   ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
+
    reloadFrame();
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value) {
    ratWalkTracker->on_trackbar(value);
+   bool signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
+   ui->spinBoxCambiarFrame->setValue(value);
+   ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
    reloadFrame();
 }
 
@@ -105,10 +139,10 @@ void MainWindow::on_checkBoxMostrarEsqueleto_stateChanged(int state) {
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
+   if (ratWalkTracker == nullptr) return;
    QRect geometry = ui->pnlFrame->geometry();
    geometry.translate(ui->pnlFrame->parentWidget()->mapTo(this, QPoint(0, 0)));
-   if (geometry.contains(event->pos())) {
-      if (ratWalkTracker == nullptr) return;
+   if (event->button() == Qt::LeftButton && geometry.contains(event->pos())) {
       imageViewerClickedPos = ui->pnlFrame->mapFrom(this, event->pos());
       grabbedPointId = ratWalkTracker->getClosestPointID(
                            imageViewerClickedPos.x(),
@@ -119,8 +153,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
       if (grabbedPointId != -1) {
          ui->pnlFrame->setCursor(Qt::ClosedHandCursor);
       }
-   } else {
-
    }
 }
 
@@ -129,28 +161,35 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event) {
    geometry.translate(ui->pnlFrame->parentWidget()->mapTo(this, QPoint(0, 0)));
    if (geometry.contains(event->pos())) {
       if (ratWalkTracker == nullptr) return;
-      QPoint point = ui->pnlFrame->mapFrom(this, event->pos());
-      int frameWidth  = ui->pnlFrame->width();
-      int frameHeight = ui->pnlFrame->height();
-      if (point == imageViewerClickedPos) {
-         int x = point.x(),
-             y = point.y();
-         ratWalkTracker->addPointOnCurrentFrame(x, y, frameWidth, frameHeight);
-         reloadFrame();
-         showZoomedRegion(point, frameWidth, frameHeight);
+      QPoint p = ui->pnlFrame->mapFrom(this, event->pos());
+      int pointToDeleteId = pointToGrabId(p, 3.0);
+      if (event->button() == Qt::RightButton && pointToDeleteId != -1) {
+         QMenu menu("Puntos", this);
+         ui->actionBorrarPunto->setData(pointToDeleteId);
+         menu.addAction(ui->actionBorrarPunto);
+         menu.exec(event->globalPos());
+      } else if (event->button() == Qt::LeftButton) {
+         QPoint point    = ui->pnlFrame->mapFrom(this, event->pos());
+         int frameWidth  = ui->pnlFrame->width();
+         int frameHeight = ui->pnlFrame->height();
+         if (point == imageViewerClickedPos) {
+            int x = point.x(),
+                y = point.y();
+            ratWalkTracker->addPointOnCurrentFrame(x, y, frameWidth, frameHeight);
+            reloadFrame();
+            showZoomedRegion(point, frameWidth, frameHeight);
+         }
+         grabbedPointId = -1;
+         ui->pnlFrame->setCursor(Qt::CrossCursor);
       }
-      grabbedPointId = -1;
-      ui->pnlFrame->setCursor(Qt::CrossCursor);
-   } else {
-
    }
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event) {
+   if (ratWalkTracker == nullptr) return;
    QRect geometry = ui->pnlFrame->geometry();
    geometry.translate(ui->pnlFrame->parentWidget()->mapTo(this, QPoint(0, 0)));
    if (geometry.contains(event->pos())) {
-      if (ratWalkTracker == nullptr) return;
       zoomedRegionWindow->show();
       QPoint point = ui->pnlFrame->mapFrom(this, event->pos());
       int frameWidth  = ui->pnlFrame->width();
@@ -164,13 +203,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
                            frameHeight);
          reloadFrame();
       } else {
-         int pointToGrabId = ratWalkTracker->getClosestPointID(
-                                 point.x(),
-                                 point.y(),
-                                 frameWidth,
-                                 frameHeight,
-                                 3.0);
-         if (pointToGrabId != -1) {
+         if (pointToGrabId(point, 3.0) != -1) {
             ui->pnlFrame->setCursor(Qt::OpenHandCursor);
          } else {
             ui->pnlFrame->setCursor(Qt::CrossCursor);
@@ -184,6 +217,13 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
    }
 }
 
+int MainWindow::pointToGrabId(QPoint pos, double radius) {
+   if (ratWalkTracker == nullptr) return -1;
+   int w = ui->pnlFrame->width(),
+       h = ui->pnlFrame->height();
+   return ratWalkTracker->getClosestPointID(pos.x(), pos.y(), w, h, radius);
+}
+
 void MainWindow::on_btnTraerEsqueleto_clicked() {
    ratWalkTracker->traeEsqueleto();
    reloadFrame();
@@ -192,6 +232,9 @@ void MainWindow::on_btnTraerEsqueleto_clicked() {
 void MainWindow::on_twProjecto_doubleClicked(const QModelIndex &index) {
    if (index.parent().isValid()) {
       ratWalkTracker->setCurrentVideo(index.row());
+      bool signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
+      ui->spinBoxCambiarFrame->setValue(ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame);
+      ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
       reloadFrame();
    }
 }
@@ -210,4 +253,13 @@ void MainWindow::on_actionClose_triggered() {
 
 void MainWindow::on_actionGuardar_triggered() {
    ratWalkTracker->guardar();
+}
+
+void MainWindow::on_spinBoxCambiarFrame_valueChanged(int value) {
+   bool signalsEnabled;
+   ratWalkTracker->on_trackbar(value);
+   signalsEnabled = ui->horizontalSlider->blockSignals(true);
+   ui->horizontalSlider->setValue(value);
+   ui->horizontalSlider->blockSignals(signalsEnabled);
+   reloadFrame();
 }
