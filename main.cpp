@@ -2,7 +2,7 @@
 #include <QStyle>
 #include <QDesktopWidget>
 #include <QKeyEvent>
-#include "MainWindow.h"
+#include "RatWalkGui/MainWindow.h"
 
 int main(int argc, char *argv[]) {
    QApplication a(argc, argv);

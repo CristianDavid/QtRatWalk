@@ -11,27 +11,31 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = QtRatWalk
 TEMPLATE = app
 
-SOURCES += main.cpp\
-        MainWindow.cpp \
-    RatWalkTracker.cpp \
-    RatWalkFrameObject.cpp \
-    RatWalkTrackerVideoObject.cpp \
-    ImageViewer.cpp \
-    RatWalkFile.cpp
+SOURCES += main.cpp \
+    RatWalkGui/MainWindow.cpp \
+    RatWalkCore/RatWalkTracker.cpp \
+    RatWalkCore/RatWalkFrameObject.cpp \
+    RatWalkCore/RatWalkTrackerVideoObject.cpp \
+    RatWalkGui/ImageViewer.cpp \
+    RatWalkCore/RatWalkFile.cpp
 
-HEADERS  += MainWindow.h \
-    RatWalkControlPoint.h \
-    RatWalkFrameObject.h \
-    RatWalkTrackerVideoObject.h \
-    RatWalkTracker.h \
-    cvMat2QtImage.h \
-    ImageViewer.h \
-    Points.h \
-    RatWalkFile.h \
-    RatWalkConstantes.h
+HEADERS  += \
+    RatWalkCore/RatWalkControlPoint.h \
+    RatWalkCore/RatWalkFrameObject.h \
+    RatWalkCore/RatWalkTrackerVideoObject.h \
+    RatWalkCore/Points.h \
+    RatWalkCore/RatWalkFile.h \
+    RatWalkCore/RatWalkTracker.h \
+    RatWalkGui/MainWindow.h \
+    RatWalkGui/cvMat2QtImage.h \
+    RatWalkGui/ImageViewer.h \
+    RatWalkCore/Constantes.h
 
-FORMS    += MainWindow.ui
+FORMS    += RatWalkGui/MainWindow.ui
 
 LIBS     += `pkg-config --libs opencv`
 
 CONFIG   += c++11
+
+OTHER_FILES += \
+    Doxyfile

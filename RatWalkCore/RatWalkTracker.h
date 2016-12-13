@@ -4,8 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
-#include "RatWalkTrackerVideoObject.h"
-#include "RatWalkFile.h"
+#include "RatWalkCore/RatWalkTrackerVideoObject.h"
+#include "RatWalkCore/RatWalkFile.h"
 
 #define HalfWindowSize 9
 #define NpointsToTrack 5
