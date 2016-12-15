@@ -4,12 +4,14 @@
 #include <QMainWindow>
 #include <QPoint>
 #include <QObject>
-#include "RatWalkCore/RatWalkTracker.h"
+#include "RatWalkCore/Tracker.h"
 #include "RatWalkGui/ImageViewer.h"
 
 namespace Ui {
 class MainWindow;
 }
+
+namespace RatWalkGui {
 
 class MainWindow : public QMainWindow {
    Q_OBJECT
@@ -37,10 +39,12 @@ protected:
 private:
    int pointToGrabId(QPoint pos, double radius);
    Ui::MainWindow *ui;
-   RatWalkTracker *ratWalkTracker;
-   ImageViewer    *zoomedRegionWindow;
-   QPoint          imageViewerClickedPos;
-   int             grabbedPointId;
+   RatWalkCore::Tracker *ratWalkTracker;
+   ImageViewer *zoomedRegionWindow;
+   QPoint imageViewerClickedPos;
+   int grabbedPointId;
 };
+
+} // namespace RatWalkGui
 
 #endif // MAINWINDOW_H

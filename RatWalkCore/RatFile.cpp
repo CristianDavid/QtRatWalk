@@ -1,12 +1,15 @@
-#include "RatWalkCore/RatWalkFile.h"
+#include "RatWalkCore/RatFile.h"
 
+#include <fstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 
-RatWalkFile::RatWalkFile(const char *filename):
+namespace RatWalkCore {
+
+RatFile::RatFile(const char *filename):
    projectFileInfo(filename) {
    std::string line;
    std::ifstream inFile(filename);
@@ -24,46 +27,52 @@ RatWalkFile::RatWalkFile(const char *filename):
    OutputFilenameCorrected = token + "_Corrected.csv";
 }
 
-const std::string &RatWalkFile::getVideoFilename(int idx) {
+const std::string &RatFile::getVideoFilename(int idx) {
+   if (idx < 0 || idx >= numberOfVideos())
+      throw std::out_of_range("RatFile::getVideoFilename(int)");
    return videoFilenames[idx];
 }
 
-const std::string &RatWalkFile::getOutputFilename() {
+const std::string &RatFile::getOutputFilename() {
    return OutputFilename;
 }
 
-std::string RatWalkFile::getVideoFilenameWithPath(int idx) {
+std::string RatFile::getVideoFilenameWithPath(int idx) {
+   if (idx < 0 || idx >= numberOfVideos())
+      throw std::out_of_range("RatFile::getVideoFilenameWithPath(int)");
    return getProjectPath() + QDir::separator().toLatin1()
                            + getVideoFilename(idx);
 }
 
-std::string RatWalkFile::getOutputFilenameWidthPath() {
+std::string RatFile::getOutputFilenameWidthPath() {
    return getProjectPath() + QDir::separator().toLatin1()
          + getOutputFilename();
 }
 
-std::string RatWalkFile::getOutputFilenameCorrected() {
+std::string RatFile::getOutputFilenameCorrected() {
    return getProjectPath() + QDir::separator().toLatin1()
          + OutputFilenameCorrected;
 }
 
-std::string RatWalkFile::getTargetFilename() {
+std::string RatFile::getTargetFilename() {
    return getProjectPath() + QDir::separator().toLatin1()
          + "CalibrationLettersTarget.png";
 }
 
-std::string RatWalkFile::getProjectName() {
+std::string RatFile::getProjectName() {
    return projectFileInfo.fileName().toStdString();
 }
 
-std::string RatWalkFile::getProjectPath() {
+std::string RatFile::getProjectPath() {
    return projectFileInfo.path().toStdString();
 }
 
-const std::vector<std::string> &RatWalkFile::getVideoNames() {
+const std::vector<std::string> &RatFile::getVideoNames() {
    return videoFilenames;
 }
 
-int RatWalkFile::numberOfVideos() {
-   return videoFilenames.size();
+int RatFile::numberOfVideos() {
+   return (int)videoFilenames.size();
 }
+
+} // namespace RatWalkCore

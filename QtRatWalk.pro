@@ -13,23 +13,24 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     RatWalkGui/MainWindow.cpp \
-    RatWalkCore/RatWalkTracker.cpp \
-    RatWalkCore/RatWalkFrameObject.cpp \
-    RatWalkCore/RatWalkTrackerVideoObject.cpp \
     RatWalkGui/ImageViewer.cpp \
-    RatWalkCore/RatWalkFile.cpp
+    RatWalkCore/RatFile.cpp \
+    RatWalkCore/Frame.cpp \
+    RatWalkCore/Tracker.cpp \
+    RatWalkCore/Video.cpp
 
 HEADERS  += \
-    RatWalkCore/RatWalkControlPoint.h \
-    RatWalkCore/RatWalkFrameObject.h \
-    RatWalkCore/RatWalkTrackerVideoObject.h \
     RatWalkCore/Points.h \
-    RatWalkCore/RatWalkFile.h \
-    RatWalkCore/RatWalkTracker.h \
     RatWalkGui/MainWindow.h \
     RatWalkGui/cvMat2QtImage.h \
     RatWalkGui/ImageViewer.h \
-    RatWalkCore/Constantes.h
+    RatWalkCore/Constantes.h \
+    RatWalkCore/ControlPoint.h \
+    RatWalkCore/Frame.h \
+    RatWalkCore/Tracker.h \
+    RatWalkCore/RatFile.h \
+    RatWalkCore/Video.h \
+    RatWalkCore/RatWalkCore.h
 
 FORMS    += RatWalkGui/MainWindow.ui
 

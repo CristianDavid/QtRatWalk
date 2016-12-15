@@ -21,6 +21,10 @@
 #include "RatWalkGui/cvMat2QtImage.h"
 #include "RatWalkGui/ImageViewer.h"
 
+using RatWalkCore::Tracker;
+
+namespace RatWalkGui {
+
 MainWindow::MainWindow(QWidget *parent) :
    QMainWindow(parent),
    ui(new Ui::MainWindow),
@@ -73,7 +77,7 @@ void MainWindow::on_actionOpen_triggered() {
    on_actionClose_triggered();
    ui->actionClose->setEnabled(true);
    ui->actionGuardar->setEnabled(true);
-   ratWalkTracker = new RatWalkTracker(fileName.toStdString().c_str());
+   ratWalkTracker = new Tracker(fileName.toStdString().c_str());
    numberOfFrames = ratWalkTracker->getCurrentVideoAnalyzed().NumberOfFrames;
    ui->ratWalkFrame->setEnabled(true);
    ui->horizontalSlider->setMaximum(numberOfFrames-1);
@@ -263,3 +267,5 @@ void MainWindow::on_spinBoxCambiarFrame_valueChanged(int value) {
    ui->horizontalSlider->blockSignals(signalsEnabled);
    reloadFrame();
 }
+
+} // namespace RatWalkGui

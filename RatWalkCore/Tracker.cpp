@@ -1,4 +1,4 @@
-#include "RatWalkCore/RatWalkTracker.h"
+#include "RatWalkCore/Tracker.h"
 
 #include <unistd.h>
 #include <cstdio>
@@ -18,8 +18,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 
-#include "RatWalkCore/RatWalkTrackerVideoObject.h"
-#include "RatWalkCore/RatWalkConstantes.h"
+#include "RatWalkCore/Video.h"
+#include "RatWalkCore/Constantes.h"
 #include "RatWalkCore/Points.h"
 #include <QDebug>
 
@@ -32,17 +32,9 @@ using namespace std;
  Mouse interaction´s callback function
  #####################################################*/
 
-void mouseHandlerForInitialTrackingPoints(int event, int x, int y, int flags, void* param) {
-   RatWalkTracker *obj = static_cast<RatWalkTracker *>(param);
-   obj->mouseHandlerForInitialTrackingPoints(event, x, y, flags);
-}
+namespace RatWalkCore {
 
-void on_trackbar(int Position, void *param) {
-   RatWalkTracker *obj = static_cast<RatWalkTracker *>(param);
-   obj->on_trackbar(Position);
-}
-
-RatWalkTracker::RatWalkTracker(const char *fileName) :
+Tracker::Tracker(const char *fileName) :
    ratFile(fileName) {
    CurrentVideoAnalyzed=0;
 
@@ -334,7 +326,7 @@ RatWalkTracker::RatWalkTracker(const char *fileName) :
            VideoNumber = stoi(tokens[0]);
            FrameNumber = stoi(tokens[1]);
 
-           RatWalkFrameObject &frame = VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber];
+           Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber];
 
            for (int i = 0; i < NpointsToTrack && !tokens[i*2+2].empty(); i++) {
                frame.TrackedPointsInFrame[i].CoorX  = stoi(tokens[i*2+2]);
@@ -403,7 +395,7 @@ RatWalkTracker::RatWalkTracker(const char *fileName) :
        ofsCorrected << "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
        for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
            for (int i = 0 ;i < VideoToAnalyze[VideoNumber].NumberOfFrames; i++) {
-               RatWalkFrameObject &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
+               Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
                if (frame.NumberOfTRegisteredPoints > 0) {
                    ofsCorrected << VideoNumber << "," << i;
                    for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
@@ -430,21 +422,21 @@ RatWalkTracker::RatWalkTracker(const char *fileName) :
    }
 }
 
-void RatWalkTracker::nextFrame() {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+void Tracker::nextFrame() {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    currentVideo.GetNextFrame();
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
 
-void RatWalkTracker::prevFrame() {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+void Tracker::prevFrame() {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    VideoToAnalyze[CurrentVideoAnalyzed].GetPreviousFrame();
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
 
-void RatWalkTracker::guardar() {
+void Tracker::guardar() {
    const char *HEADER = "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
    std::ofstream ofs(ratFile.getOutputFilenameWidthPath().c_str(), std::ofstream::out);
    std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected().c_str());
@@ -452,7 +444,7 @@ void RatWalkTracker::guardar() {
    ofsCorrected << HEADER;
    for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
        for (int i = 0 ;i < VideoToAnalyze[VideoNumber].NumberOfFrames; i++) {
-           RatWalkFrameObject &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
+           Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
            if (frame.NumberOfTRegisteredPoints > 0) {
                ofs << VideoNumber << "," << i;
                ofsCorrected << VideoNumber << "," << i;
@@ -483,16 +475,16 @@ void RatWalkTracker::guardar() {
    ofs.close();
 }
 
-void RatWalkTracker::traeEsqueleto() {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
-   RatWalkFrameObject        &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
+void Tracker::traeEsqueleto() {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed]; //!< \todo Tracker debería tener un método currentVideo()
+   Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame]; //!< \todo Video debería tener un método currentFrame()
    bool sinAsignar = true;
    for (int i = currentVideo.CurrentFrame-1; sinAsignar && i >= 0; i--) {
-      RatWalkFrameObject &prevFrame = currentVideo.FrameProperties[i];
+      Frame &prevFrame = currentVideo.FrameProperties[i];
       if (prevFrame.NumberOfTRegisteredPoints > 0) {
          currentFrame.NumberOfTRegisteredPoints = 0;
          for (int i = 0; i < prevFrame.NumberOfTRegisteredPoints; i++) {
-            RatWalkControlPoint p = prevFrame.TrackedPointsInFrame[i];
+            ControlPoint p = prevFrame.TrackedPointsInFrame[i];
 
             currentVideo.SelectPoint(p.CoorX, p.CoorY, HalfWindowSize, i, CurrentVideoAnalyzed);
             //currentFrame.SetTrackedPoints(i, p.x, p.y);
@@ -513,39 +505,39 @@ void RatWalkTracker::traeEsqueleto() {
    }
 }
 
-Mat RatWalkTracker::getFrameWithRectangle() {
+Mat Tracker::getFrameWithRectangle() {
    return VideoToAnalyze[CurrentVideoAnalyzed].getFrameWithTrackingPoints();
 }
 
-Mat RatWalkTracker::getFrameWithSkeleton() {
+Mat Tracker::getFrameWithSkeleton() {
    return VideoToAnalyze[CurrentVideoAnalyzed].getFrameWithSkeleton();
 }
 
-cv::Mat RatWalkTracker::getZoomedRegion(int x, int y, int frameWidth, int frameHeight) {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+cv::Mat Tracker::getZoomedRegion(int x, int y, int frameWidth, int frameHeight) {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
    return currentVideo.getZoomedRegion(x2, y2, HalfWindowSize);
 }
 
-const RatWalkTrackerVideoObject &RatWalkTracker::getCurrentVideoAnalyzed() {
+const Video &Tracker::getCurrentVideoAnalyzed() {
    return VideoToAnalyze[CurrentVideoAnalyzed];
 }
 
-const std::vector<string> &RatWalkTracker::getVideoNames() {
+const std::vector<string> &Tracker::getVideoNames() {
    return ratFile.getVideoNames();
 }
 
-void RatWalkTracker::setCurrentVideo(int index) {
+void Tracker::setCurrentVideo(int index) {
    CurrentVideoAnalyzed = index;
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
 
-void RatWalkTracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
@@ -553,36 +545,36 @@ void RatWalkTracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int fr
    PointID = std::min(PointID+1, NpointsToTrack-1);
 }
 
-void RatWalkTracker::setPointOnCurrentFrame(int pointId, int x, int y,
+void Tracker::setPointOnCurrentFrame(int pointId, int x, int y,
                                             int frameWidth, int frameHeight) {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
    currentVideo.SelectPoint(x2, y2, HalfWindowSize, pointId, CurrentVideoAnalyzed);
 }
 
-void RatWalkTracker::deletePointOnCurrentFrame(int pointId) {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
-   RatWalkFrameObject &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
+void Tracker::deletePointOnCurrentFrame(int pointId) {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+   Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
    auto iter = currentFrame.TrackedPointsInFrame.begin() + pointId;
    currentFrame.TrackedPointsInFrame.erase(iter);
-   currentFrame.TrackedPointsInFrame.push_back(RatWalkControlPoint());
+   currentFrame.TrackedPointsInFrame.push_back(ControlPoint());
    currentFrame.NumberOfTRegisteredPoints--;
    currentFrame.NumberOfTRegisteredPoints = PointID;
 }
 
-int RatWalkTracker::getClosestPointID(int x, int y, int frameWidth,
+int Tracker::getClosestPointID(int x, int y, int frameWidth,
                                       int frameHeight, double maxDistance) {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
-   RatWalkFrameObject &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+   Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
    double minDistance = -1.0, currentDistance;
    int minId = -1;
    for (int i = 0; i < currentFrame.NumberOfTRegisteredPoints; i++) {
-      RatWalkControlPoint p = currentFrame.TrackedPointsInFrame[i];
+      ControlPoint p = currentFrame.TrackedPointsInFrame[i];
       currentDistance = euclidianDistance(x2, y2, p.CoorX, p.CoorY);
       if (minDistance < 0 || currentDistance < minDistance) {
          minId = i;
@@ -595,145 +587,12 @@ int RatWalkTracker::getClosestPointID(int x, int y, int frameWidth,
    return minId;
 }
 
-void RatWalkTracker::mouseHandlerForInitialTrackingPoints(int event, int x, int y, int flags) {
-   if (event == CV_EVENT_LBUTTONDOWN)
-   {
-
-       VideoToAnalyze[CurrentVideoAnalyzed].SelectPoint(x, y, HalfWindowSize, PointID, CurrentVideoAnalyzed);
-       // VideoToAnalyze.ShowSkeletonInCurrentFrame();
-
-   }
-
-
-   if (event == CV_EVENT_MOUSEMOVE)
-   {
-       Rect BoundingBoxData; /* bounding box */
-       Mat FrameWithRectangle = VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrameData.clone();
-       Mat FrameClone = VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrameData.clone();
-       Mat ImageRegion;
-       Mat ZoomedRegion;
-       Point WindowPoint1, WindowPoint2;
-       Point RegionPoint1, RegionPoint2;
-       WindowPoint1.x=x-HalfWindowSize;
-       if (WindowPoint1.x<0)
-           WindowPoint1.x=0;
-       WindowPoint1.y=y-HalfWindowSize;
-       if (WindowPoint1.y<0)
-           WindowPoint1.y=0;
-       WindowPoint2.x=x+HalfWindowSize;
-       if (WindowPoint2.x>VideoToAnalyze[CurrentVideoAnalyzed].Width-1)
-           WindowPoint2.x=VideoToAnalyze[CurrentVideoAnalyzed].Width-1;
-       WindowPoint2.y=y+HalfWindowSize;
-       if (WindowPoint2.y>VideoToAnalyze[CurrentVideoAnalyzed].Height-1)
-           WindowPoint2.y=VideoToAnalyze[CurrentVideoAnalyzed].Height-1;
-
-
-       rectangle(FrameWithRectangle, WindowPoint1, WindowPoint2, CV_RGB(255, 0, 0), 3, 8, 0);
-       BoundingBoxData = Rect(WindowPoint1.x,WindowPoint1.y,WindowPoint2.x-WindowPoint1.x,WindowPoint2.y-WindowPoint1.y);
-
-
-       ImageRegion = FrameClone(BoundingBoxData);
-       //rectangle(ImageRegion, RegionPoint1, RegionPoint2, CV_RGB(255, 0, 0), 1, 1, 0);
-       circle(ImageRegion, Point(HalfWindowSize+1,HalfWindowSize+1),1, Scalar(255,0,0),CV_FILLED, 1,0);
-       Size dsize = Size(500,500);
-       resize(ImageRegion, ZoomedRegion, dsize);
-
-       for (int PointToShow=0;PointToShow<VideoToAnalyze[CurrentVideoAnalyzed].FrameProperties[VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame].NumberOfTRegisteredPoints;PointToShow++)
-           circle(FrameWithRectangle, Point((int)round(VideoToAnalyze[CurrentVideoAnalyzed].FrameProperties[VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame].TrackedPointsInFrame[PointToShow].CoorX),(int)round(VideoToAnalyze[CurrentVideoAnalyzed].FrameProperties[VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame].TrackedPointsInFrame[PointToShow].CoorY)),3, Scalar(0,0,255),CV_FILLED, 1,0);
-
-       //VideoToAnalyze.ShowSkeletonInCurrentFrame();
-
-       imshow("ZoomedRegion", ZoomedRegion);
-       imshow("RatWalkVideo", FrameWithRectangle);
-   }
-
-   //    if (event == CV_EVENT_LBUTTONUP && drag)
-   //    {
-   //        point2 = Point(x, y);
-   //        rect = Rect(point1.x,point1.y,x-point1.x,y-point1.y);
-   //        drag = 0;
-   //        if (select_flag==0)
-   //            roiImg1 = img(rect);
-   //        if (select_flag==1)
-   //            roiImg2 = img(rect);
-   //        if (select_flag==2)
-   //            roiImg3 = img(rect);
-   //    }
-
-   //    if (event == CV_EVENT_LBUTTONUP)
-   //    {
-   /* ROI selected */
-   //        select_flag ++;
-   //        drag = 0;
-   //    }
-}
-
-/*####################################################
- Routine for Selecting frame for drwawing the tracking points
- #####################################################*/
-int RatWalkTracker::SelectFrameForAddingTrackingPoints() {
-
-
-   //Forward
-   char PressedKey=waitKey(0);  //Check if we can change this for a one
-   while(PressedKey!='K' && PressedKey!='k'){
-
-
-       /*
-        //Show the points in the frame
-        Mat FrameWithRectangle = VideoToAnalyze.CurrentFrameData.clone();
-        for (int PointToShow=0;PointToShow<VideoToAnalyze.FrameProperties[VideoToAnalyze.CurrentFrame].NumberOfTrackedPoints;PointToShow++){
-        circle(FrameWithRectangle, Point((int)round(VideoToAnalyze.FrameProperties[VideoToAnalyze.CurrentFrame].TrackedPointsInFrame[PointToShow].CoorX),(int)round(VideoToAnalyze.FrameProperties[VideoToAnalyze.CurrentFrame].TrackedPointsInFrame[PointToShow].CoorY)),3, Scalar(0,0,255),CV_FILLED, 1,0);
-
-        }
-        imshow("RatWalkVideo", FrameWithRectangle);
-        */
-
-
-
-
-       if (PressedKey=='N' || PressedKey=='n'){
-           VideoToAnalyze[CurrentVideoAnalyzed].GetNextFrame();
-           cout<<"CurrentFrame "<<VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame<<"\n";
-       }
-
-       //Backwards
-       if (PressedKey=='P' || PressedKey=='p'){
-           VideoToAnalyze[CurrentVideoAnalyzed].GetPreviousFrame();
-           cout<<"CurrentFrame "<<VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame<<"\n";
-       }
-       VideoToAnalyze[CurrentVideoAnalyzed].ShowSkeletonInCurrentFrame();
-
-       // TODO está función ya no sé usa en la implementación en Qt, tengo que
-       // buscar dónde icorporar esto
-       cv::Mat ImageToTransform=VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrameData.clone();
-       cv::Mat TransformedImage;
-       // Use the Homography Matrix to warp the images
-        if (CurrentVideoAnalyzed==0){
-           cv::warpPerspective(ImageToTransform,TransformedImage,HLeft,cv::Size(TargetImage.cols,TargetImage.rows));
-        }
-        if (CurrentVideoAnalyzed==1){
-           warpPerspective(ImageToTransform,TransformedImage,HMiddle,cv::Size(TargetImage.cols,TargetImage.rows));
-        }
-        if (CurrentVideoAnalyzed==2){
-           warpPerspective(ImageToTransform,TransformedImage,HRight,cv::Size(TargetImage.cols,TargetImage.rows));
-        }
-
-        VideoToAnalyze[CurrentVideoAnalyzed].ShowSkeletonInCurrentTransformedFrame(TransformedImage);
-
-       if (PressedKey==27)
-           return 0;
-       //imshow("RatWalkVideo", VideoToAnalyze.CurrentFrameData);
-       PressedKey=waitKey(0);
-   }
-   return 1;
-}
-
-void RatWalkTracker::on_trackbar(int Position) {
-   RatWalkTrackerVideoObject &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
+void Tracker::on_trackbar(int Position) {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    currentVideo.GetFrameNumber((double)Position);
    currentVideo.ShowSkeletonInCurrentFrame();
-   cout<<"CurrentFrame "<<VideoToAnalyze[CurrentVideoAnalyzed].CurrentFrame<<"\n";
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
+
+} // namespace RatWalkCore

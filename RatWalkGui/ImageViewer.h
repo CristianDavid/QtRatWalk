@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QImage>
 
+namespace RatWalkGui {
+
 class ImageViewer : public QWidget {
    Q_OBJECT
 public:
@@ -14,5 +16,7 @@ protected:
 private:
    QImage img;
 };
+
+} // namespace RatWalkGui
 
 #endif // IMAGEVIEWER_H

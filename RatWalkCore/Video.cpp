@@ -1,10 +1,12 @@
 #include <algorithm>
-#include "RatWalkCore/RatWalkConstantes.h"
-#include "RatWalkCore/RatWalkTrackerVideoObject.h"
+#include "RatWalkCore/Constantes.h"
+#include "RatWalkCore/Video.h"
 
 using namespace cv;
 
-int RatWalkTrackerVideoObject::OpenVideoFile(char VideoFileName[]){
+namespace RatWalkCore {
+
+int Video::OpenVideoFile(char VideoFileName[]){
    videoObject.open(VideoFileName);
    if(!videoObject.isOpened())  // check if we succeeded
       return 0;
@@ -14,7 +16,7 @@ int RatWalkTrackerVideoObject::OpenVideoFile(char VideoFileName[]){
    Height = videoObject.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of the video
 
    //build RatWalkFrame objects for each frame
-   FrameProperties=new RatWalkFrameObject[NumberOfFrames];
+   FrameProperties=new Frame[NumberOfFrames];
    //Initialize the tracking points objects for each frame
    for (int Frame=0;Frame<NumberOfFrames;Frame++)
       FrameProperties[Frame].SetNumberOfNumberOfPointsToTrack(NUMBEROFPOINTSTOTRACK);
@@ -30,12 +32,12 @@ int RatWalkTrackerVideoObject::OpenVideoFile(char VideoFileName[]){
    return 1;
 }
 
-int RatWalkTrackerVideoObject::OpenLiveStream(int DeviceNumber){
+int Video::OpenLiveStream(int DeviceNumber){
   videoObject.open(DeviceNumber);
   return 1;
 }
 
-int RatWalkTrackerVideoObject::GetNextFrame(){
+int Video::GetNextFrame(){
   CurrentFrame++;
   if (CurrentFrame>=NumberOfFrames)
       CurrentFrame=NumberOfFrames-1;
@@ -51,7 +53,7 @@ int RatWalkTrackerVideoObject::GetNextFrame(){
   return 1;
 }
 
-int RatWalkTrackerVideoObject::GetPreviousFrame(){
+int Video::GetPreviousFrame(){
   CurrentFrame--;
   if (CurrentFrame<0)
       CurrentFrame=0;
@@ -66,7 +68,7 @@ int RatWalkTrackerVideoObject::GetPreviousFrame(){
   return 1;
 }
 
-int RatWalkTrackerVideoObject::GetFrameNumber(double FrameNumber){
+int Video::GetFrameNumber(double FrameNumber){
   CurrentFrame=FrameNumber;
   if (CurrentFrame<0)
       CurrentFrame=0;
@@ -85,7 +87,7 @@ int RatWalkTrackerVideoObject::GetFrameNumber(double FrameNumber){
 
 
 //Function to show the skeleton in the current frame
-void RatWalkTrackerVideoObject::ShowSkeletonInCurrentFrame(){
+void Video::ShowSkeletonInCurrentFrame(){
   cv::Mat CurrentFrameWithSkeleton=CurrentFrameData.clone();
   int NumberOfPointsToShow=FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;
   for (int i=1;i<NumberOfPointsToShow;i++){
@@ -133,7 +135,7 @@ void RatWalkTrackerVideoObject::ShowSkeletonInCurrentFrame(){
 }
 
 
-void RatWalkTrackerVideoObject::ShowFrameWithTrackingPoints() {
+void Video::ShowFrameWithTrackingPoints() {
   cv::Mat FrameWithRectangle = CurrentFrameData.clone();
   for (int PointToShow=0;PointToShow<FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;PointToShow++)
       cv::circle(FrameWithRectangle, cv::Point((int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorX),(int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorY)),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
@@ -142,7 +144,7 @@ void RatWalkTrackerVideoObject::ShowFrameWithTrackingPoints() {
 }
 
 //Function to show the skeleton in the current frame
-void RatWalkTrackerVideoObject::ShowSkeletonInCurrentTransformedFrame(cv::Mat TransformedFrame) {
+void Video::ShowSkeletonInCurrentTransformedFrame(cv::Mat TransformedFrame) {
    cv::Mat CurrentFrameWithSkeleton=TransformedFrame.clone();
    int NumberOfPointsToShow=FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;
    for (int i=1;i<NumberOfPointsToShow;i++){
@@ -187,14 +189,14 @@ void RatWalkTrackerVideoObject::ShowSkeletonInCurrentTransformedFrame(cv::Mat Tr
    imshow("RatWalkVideoCorrected", CurrentFrameWithSkeleton);
 }
 
-cv::Mat RatWalkTrackerVideoObject::getFrameWithTrackingPoints() {
+cv::Mat Video::getFrameWithTrackingPoints() {
    cv::Mat FrameWithRectangle = CurrentFrameData.clone();
    for (int PointToShow=0;PointToShow<FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;PointToShow++)
        cv::circle(FrameWithRectangle, cv::Point((int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorX),(int)round(FrameProperties[CurrentFrame].TrackedPointsInFrame[PointToShow].CoorY)),3, cv::Scalar(0,0,255),CV_FILLED, 1,0);
    return FrameWithRectangle;
 }
 
-cv::Mat RatWalkTrackerVideoObject::getFrameWithSkeleton() {
+cv::Mat Video::getFrameWithSkeleton() {
    cv::Mat CurrentFrameWithSkeleton=CurrentFrameData.clone();
    int NumberOfPointsToShow=FrameProperties[CurrentFrame].NumberOfTRegisteredPoints;
    for (int i=1;i<NumberOfPointsToShow;i++){
@@ -234,7 +236,7 @@ cv::Mat RatWalkTrackerVideoObject::getFrameWithSkeleton() {
    return CurrentFrameWithSkeleton;
 }
 
-cv::Mat RatWalkTrackerVideoObject::getZoomedRegion(int x, int y, int halfWindowSize) {
+cv::Mat Video::getZoomedRegion(int x, int y, int halfWindowSize) {
    cv::Mat frameWithRectangle = getFrameWithTrackingPoints();
    cv::Mat SegmentedZoomedImageRegion;
    cv::Point WindowPoint1, WindowPoint2;
@@ -263,7 +265,7 @@ cv::Mat RatWalkTrackerVideoObject::getZoomedRegion(int x, int y, int halfWindowS
    return SegmentedZoomedImageRegion;
 }
 
-void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, int PointId, int CurrentVideoAnalyzed){
+void Video::SelectPoint(int x, int y, int HalfWindowSize, int PointId, int CurrentVideoAnalyzed){
 
   std::cout<<"\n CoorX="<<x<<" CoorY="<<y;
 
@@ -338,7 +340,7 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
   if (CurrentVideoAnalyzed==2)
     cv::perspectiveTransform(vec,vecCorrected, HRight);
 
-  RatWalkFrameObject &currentFrame = FrameProperties[CurrentFrame];
+  Frame &currentFrame = FrameProperties[CurrentFrame];
   currentFrame.TrackedPointsInFrame[PointId].CoorX=x;
   currentFrame.TrackedPointsInFrame[PointId].CoorY=y;
   if (currentFrame.NumberOfTRegisteredPoints < 5) {
@@ -388,7 +390,7 @@ void RatWalkTrackerVideoObject::SelectPoint(int x, int y, int HalfWindowSize, in
 }
 
 
-void RatWalkTrackerVideoObject::SegmentRegionFromSeed(int x, int y, int HalfWindowSize, int PointId){
+void Video::SegmentRegionFromSeed(int x, int y, int HalfWindowSize, int PointId){
 
   std::cout<<"\n CoorX="<<x<<" CoorY="<<y;
 
@@ -539,7 +541,7 @@ resize(new_image, SegmentedZoomedImageRegion, dsize);
   FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId].MarkerColor=SampleColor;
 }
 
-int RatWalkTrackerVideoObject::SegmentRegionFromColorStatistics(int x, int y, int HalfWindowSize, int PointId, cv::Vec3b SampleColor){
+int Video::SegmentRegionFromColorStatistics(int x, int y, int HalfWindowSize, int PointId, cv::Vec3b SampleColor){
           std::cout<<"\n CoorX="<<x<<" CoorY="<<y;
 
   cv::Rect BoundingBoxData; /* bounding box */
@@ -705,8 +707,9 @@ int RatWalkTrackerVideoObject::SegmentRegionFromColorStatistics(int x, int y, in
 
 }
 
-int RatWalkTrackerVideoObject::RelaseVideo(){
+int Video::RelaseVideo(){
   videoObject.release();
   return 1;
 }
 
+} // namespace RatWalkCore

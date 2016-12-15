@@ -161,7 +161,7 @@
         </widget>
        </item>
        <item alignment="Qt::AlignLeft">
-        <widget class="ImageViewer" name="pnlFrame" native="true">
+        <widget class="RatWalkGui::ImageViewer" name="pnlFrame" native="true">
          <property name="cursor">
           <cursorShape>ArrowCursor</cursorShape>
          </property>
@@ -315,7 +315,7 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>ImageViewer</class>
+   <class>RatWalkGui::ImageViewer</class>
    <extends>QWidget</extends>
    <header>RatWalkGui/ImageViewer.h</header>
    <container>1</container>

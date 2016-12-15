@@ -5,34 +5,37 @@
 #include <string>
 #include <QFileInfo>
 
+namespace RatWalkCore {
+
 /*!
- * \brief La clase RatWalkFile almacena la información
+ * \brief La clase RatFile almacena la información
  *        sobre un proyecto especificado en un archivo .rat.
  *
  * Esta clase contiene las rutas y los nombres de los archivos utilizados
  * en un proyecto, nombre de videos, archivos de salida, etc.
  */
-class RatWalkFile {
+class RatFile {
  public:
    /*!
-    * \brief RatWalkFile Construye a partir de un nombre de archivo.
+    * \brief RatFile Construye a partir de un nombre de archivo.
     *
     *  Este constructor lee un archivo, idealmente con la extensión .rat, y
     *  obtiene los nombres de los vídeos que forman el proyecto.
     *
-    *  Cada línea del archivo de entrada debe tener el nombre del un video.
+    *  Cada línea del archivo de entrada debe tener el nombre de un video.
     *
     * \see getVideoFilenameWithPath(int)
     * \see getVideoFilename(int)
     *
-    * \param filename el nombre del archivo con la información del proyecto.
+    * \param[in] filename el nombre del archivo con la información del proyecto.
     */
-   RatWalkFile(const char *filename);
+   RatFile(const char *filename);
 
    /*!
     * \brief getVideoFilename regresa el nombre de un video del proyecto
-    * \param[in] idx el índice del video, 0 <= idx < numberOfVideos()
+    * \param[in] idx el índice del video
     * \return Una cadena con el nombre del video.
+    * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
     */
    const std::string &getVideoFilename(int idx);
 
@@ -53,6 +56,7 @@ class RatWalkFile {
     *
     * \param[in] idx el índice del video, 0 <= idx < numberOfVideos()
     * \return nombre del archivo de video con ruta absoluta
+    * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
     */
    std::string getVideoFilenameWithPath(int idx);
 
@@ -63,17 +67,40 @@ class RatWalkFile {
     * \return Nombre del archivo de salida con ruta absoluta
     */
    std::string getOutputFilenameWidthPath();
+
+   /*!
+    * \brief getOutputFilenameCorrected
+    * \return Nombre del archivo de salida corregida con ruta absoluta
+    */
    std::string getOutputFilenameCorrected();
+
+   /*!
+    * \brief getTargetFilename
+    * \return Nombre de la imagen target
+    * \todo Que la imagen deba estar en la misma ruta que el ejecutable
+    */
    std::string getTargetFilename();
 
    /*!
     * \brief getProjectName
     * \return El nombre del archivo con la información del proyecto. Es el mismo
-    *         que el parámetro pasado a RatWalkFile()
+    *         que el parámetro pasado a RatFile()
     */
    std::string getProjectName();
+
+
+   /*!
+    * \brief getProjectPath
+    * \return Ruta del proyecto
+    */
    std::string getProjectPath();
+
+   /*!
+    * \brief getVideoNames
+    * \return Vector con los nombres de los videos del proyecto
+    */
    const std::vector<std::string> &getVideoNames();
+
    /*!
     * \brief numberOfVideos() Número de vídeos en el proyecto.
     * \see RatWalkFile()
@@ -86,5 +113,7 @@ class RatWalkFile {
    std::string OutputFilename;
    std::string OutputFilenameCorrected;
 };
+
+} // namespace RatWalkCore
 
 #endif // RATWALKFILE_H

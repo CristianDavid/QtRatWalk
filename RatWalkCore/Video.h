@@ -1,9 +1,15 @@
 #ifndef RATWALKTRACKERVIDEOOBJECT_H
 #define RATWALKTRACKERVIDEOOBJECT_H
 
-#include "RatWalkCore/RatWalkFrameObject.h"
+#include "RatWalkCore/Frame.h"
 
-class RatWalkTrackerVideoObject {
+namespace RatWalkCore {
+
+/*!
+ * \brief Datos de un vídeo para analizar
+ * \todo Entender mejor la clase
+ */
+class Video {
 private:
    cv::VideoCapture videoObject;
 public:
@@ -15,7 +21,7 @@ public:
    cv::Mat CurrentHSVFrameData;
    int CurrentFrame=0;
    int NumberOfTrackingPoints=0;
-   RatWalkFrameObject *FrameProperties;
+   Frame *FrameProperties;
    bool StartTrackingPointProcessing=false;
 
    int OpenVideoFile(char VideoFileName[]);
@@ -24,6 +30,10 @@ public:
    int GetPreviousFrame();
    int GetFrameNumber(double FrameNumber);
     //Function to show the skeleton in the current frame
+   /*!
+    * \brief ShowSkeletonInCurrentFrame
+    * \todo creo que estas funciones "Show" deberían irse
+    */
    void ShowSkeletonInCurrentFrame();
    void ShowFrameWithTrackingPoints();
    //Function to show the skeleton in the current frame
@@ -37,5 +47,7 @@ public:
                                          int PointId, cv::Vec3b SampleColor);
    int RelaseVideo();
 };
+
+} // namespace RatWalkCore
 
 #endif // RATWALKTRACKERVIDEOOBJECT_H
