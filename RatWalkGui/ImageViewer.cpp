@@ -11,7 +11,6 @@ ImageViewer::ImageViewer(QWidget * parent) : QWidget(parent) {
 }
 
 void ImageViewer::paintEvent(QPaintEvent *) {
-   qDebug() << "Me estoy pintando :)";
    if (img.isNull()) {
       img = QImage(size(), QImage::Format_RGB888);
       img.fill(0);
