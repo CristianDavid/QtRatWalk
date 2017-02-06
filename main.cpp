@@ -8,9 +8,9 @@
 
 int main(int argc, char *argv[]) {
    QApplication a(argc, argv);
-   //RatWalkGui::MainWindow w;
+   RatWalkGui::MainWindow w;
+   RatWalkGui::Plotter p;
 
-   RatWalkGui::Plotter w;
    w.setGeometry(
       QStyle::alignedRect(
          Qt::LeftToRight,

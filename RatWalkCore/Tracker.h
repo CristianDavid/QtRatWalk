@@ -167,6 +167,15 @@ class Tracker {
     */
    void setCurrentVideo(int index);
 
+   /*!
+    * \brief Saves the annotated corrected data to disk.
+    *
+    * Saves the corrected coordinates and angles to a csv file.
+    *
+    */
+   void saveCorrectedFile();
+
+
  private:
    cv::Mat TargetImage, TargetImageGray,
            Image1,     Image2,       Image3,

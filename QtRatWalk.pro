@@ -41,4 +41,5 @@ LIBS     += `pkg-config --libs opencv`
 CONFIG   += c++11
 
 OTHER_FILES += \
-    Doxyfile
+    Doxyfile \
+    .gitignore

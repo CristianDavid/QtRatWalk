@@ -28,10 +28,6 @@ cv::Mat HLeft, HMiddle, HRight; // extern global variables
 using namespace  cv;
 using namespace std;
 
-/*####################################################
- Mouse interaction´s callback function
- #####################################################*/
-
 namespace RatWalkCore {
 
 Tracker::Tracker(const char *fileName) :
@@ -59,19 +55,6 @@ Tracker::Tracker(const char *fileName) :
        resize(OriginalTargetImage, TargetImage, Size(0,0),Scale,Scale,INTER_LINEAR);
        cvtColor(TargetImage, TargetImageGrayG, CV_RGB2GRAY);
 
-
-   //    //Open the videos=====================================
-   //    VideoCapture VideoLeft, VideoMiddle, VideoRight;
-   //    VideoLeft.open(argv[1]);
-   //    VideoMiddle.open(argv[2]);
-   //    VideoRight.open(argv[3]);
-   //
-   //
-   //    VideoLeft.read(Image1);
-   //    VideoMiddle.read(Image2);
-   //    VideoRight.read(Image3);
-
-
        Image1=VideoToAnalyze[0].CurrentFrameData.clone();
        Image2=VideoToAnalyze[1].CurrentFrameData.clone();
        Image3=VideoToAnalyze[2].CurrentFrameData.clone();
@@ -83,10 +66,6 @@ Tracker::Tracker(const char *fileName) :
        cvtColor(Image1, ImageLeftG, CV_RGB2GRAY);
        cvtColor(Image2, ImageMiddleG, CV_RGB2GRAY);
        cvtColor(Image3, ImageRightG, CV_RGB2GRAY);
-
-
-
-
 
        int blursize=1;
        blur(TargetImageGrayG, TargetImageGray, Size(blursize,blursize));
@@ -311,11 +290,6 @@ Tracker::Tracker(const char *fileName) :
            int  FrameNumber = 0;
            std::vector<std::string> tokens;
 
-           /*while ((pos = lineToParse.find(delimiterRead)) != std::string::npos) {
-              token = lineToParse.substr(0, pos);
-              tokens.push_back(token);
-              lineToParse.erase(0, pos + delimiterRead.length());
-           }*/
            do {
               pos = lineToParse.find(delimiterRead);
               token = lineToParse.substr(0, pos);
@@ -338,8 +312,6 @@ Tracker::Tracker(const char *fileName) :
        }
        //Create the corrected
 
-
-       // TODO adaptar esto a la forma en la que guardo
        for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
            for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
                for (int PointId=0;PointId<NUMBEROFPOINTSTOTRACK;PointId++){
@@ -357,8 +329,6 @@ Tracker::Tracker(const char *fileName) :
 
                    VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected=vecCorrected[0].x;
                    VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected=vecCorrected[0].y;
-
-
 
                    if (PointId>0){
                        double xa=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorXCorrected;
@@ -387,36 +357,8 @@ Tracker::Tracker(const char *fileName) :
                }
            }
        }
-
-
        //Save the previously Annotated Corrected
-       // cristian 17112016
-       std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected().c_str());
-       ofsCorrected << "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
-       for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
-           for (int i = 0 ;i < VideoToAnalyze[VideoNumber].NumberOfFrames; i++) {
-               Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
-               if (frame.NumberOfTRegisteredPoints > 0) {
-                   ofsCorrected << VideoNumber << "," << i;
-                   for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
-                      ofsCorrected << "," << frame.TrackedPointsInFrame[j].CoorXCorrected
-                          << "," << frame.TrackedPointsInFrame[j].CoorYCorrected;
-                   }
-                   for (int j = frame.NumberOfTRegisteredPoints; j < frame.NumberOfPointsToTrack; j++) {
-                      ofsCorrected << ",,";
-                   }
-                   for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
-                      ofsCorrected << ',' << QString::number(frame.TrackedPointsInFrame[j].ThetaCorrected, 'f', 10).toStdString();
-                   }
-                   for (int j = frame.NumberOfTRegisteredPoints; j < frame.NumberOfPointsToTrack; j++) {
-                      ofsCorrected << ',';
-                   }
-                   ofsCorrected << '\n';
-               }
-           }
-       }
-       ofsCorrected.close();
-       // fin cristian
+        saveCorrectedFile();
    } else {
        cout<<"\n No previous annotated data";
    }
@@ -439,40 +381,32 @@ void Tracker::prevFrame() {
 void Tracker::guardar() {
    const char *HEADER = "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
    std::ofstream ofs(ratFile.getOutputFilenameWidthPath().c_str(), std::ofstream::out);
-   std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected().c_str());
-   ofs          << HEADER;
-   ofsCorrected << HEADER;
+   ofs  << HEADER;
    for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
        for (int i = 0 ;i < VideoToAnalyze[VideoNumber].NumberOfFrames; i++) {
            Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[i];
            if (frame.NumberOfTRegisteredPoints > 0) {
                ofs << VideoNumber << "," << i;
-               ofsCorrected << VideoNumber << "," << i;
                for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
                   ofs << "," << frame.TrackedPointsInFrame[j].CoorX
                       << "," << frame.TrackedPointsInFrame[j].CoorY;
-                  ofsCorrected << "," << frame.TrackedPointsInFrame[j].CoorXCorrected
-                      << "," << frame.TrackedPointsInFrame[j].CoorYCorrected;
                }
                for (int j = frame.NumberOfTRegisteredPoints; j < frame.NumberOfPointsToTrack; j++) {
-                  ofs          << ",,";
-                  ofsCorrected << ",,";
+                  ofs << ",,";
                }
                for(int j = 0; j < frame.NumberOfTRegisteredPoints; j++) {
-                  ofs          << ',' << QString::number(frame.TrackedPointsInFrame[j].Theta, 'f', 10).toStdString();
-                  ofsCorrected << ',' << QString::number(frame.TrackedPointsInFrame[j].ThetaCorrected, 'f', 10).toStdString();
+                  ofs << ',' << QString::number(frame.TrackedPointsInFrame[j].Theta, 'f', 10).toStdString();
                }
                for (int j = frame.NumberOfTRegisteredPoints; j < frame.NumberOfPointsToTrack; j++) {
-                  ofs          << ',';
-                  ofsCorrected << ',';
+                  ofs << ',';
                }
-               ofs          << "\n";
-               ofsCorrected << '\n';
+               ofs << "\n";
            }
        }
 
    }
    ofs.close();
+   saveCorrectedFile();
 }
 
 void Tracker::traeEsqueleto() {
@@ -534,6 +468,37 @@ void Tracker::setCurrentVideo(int index) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
+}
+
+void Tracker::saveCorrectedFile() {
+    std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected().c_str());
+    ofsCorrected << "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
+    for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
+        Video &video = VideoToAnalyze[VideoNumber];
+        for (int frameNumber = 0; frameNumber < video.NumberOfFrames; frameNumber++) {
+            Frame &frame = video.FrameProperties[frameNumber];
+            ofsCorrected << VideoNumber << "," << frameNumber;
+            for(int pointNumber = 0; pointNumber < frame.NumberOfPointsToTrack; pointNumber++) {
+                if (pointNumber < frame.NumberOfTRegisteredPoints) {
+                    ControlPoint &point = frame.TrackedPointsInFrame[pointNumber];
+                    ofsCorrected << "," << point.CoorXCorrected
+                                 << "," << point.CoorYCorrected;
+                } else {
+                    ofsCorrected << ",-1,-1";
+                }
+            }
+            for(int pointNumber = 0; pointNumber < frame.NumberOfPointsToTrack; pointNumber++) {
+                if (pointNumber < frame.NumberOfTRegisteredPoints) {
+                    ControlPoint &point = frame.TrackedPointsInFrame[pointNumber];
+                    ofsCorrected << ',' << QString::number(point.ThetaCorrected, 'f', 10).toStdString();
+                } else {
+                    ofsCorrected << ",-1";
+                }
+            }
+            ofsCorrected << '\n';
+        }
+    }
+    ofsCorrected.close();
 }
 
 void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
