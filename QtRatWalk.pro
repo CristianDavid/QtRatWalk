@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     RatWalkCore/RatFile.cpp \
     RatWalkCore/Frame.cpp \
     RatWalkCore/Tracker.cpp \
-    RatWalkCore/Video.cpp
+    RatWalkCore/Video.cpp \
+    RatWalkGui/Plotter.cpp
 
 HEADERS  += \
     RatWalkCore/Points.h \
@@ -30,7 +31,8 @@ HEADERS  += \
     RatWalkCore/Tracker.h \
     RatWalkCore/RatFile.h \
     RatWalkCore/Video.h \
-    RatWalkCore/RatWalkCore.h
+    RatWalkCore/RatWalkCore.h \
+    RatWalkGui/Plotter.h
 
 FORMS    += RatWalkGui/MainWindow.ui
 
