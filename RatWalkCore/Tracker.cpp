@@ -36,7 +36,8 @@ Tracker::Tracker(const char *fileName) :
 
    //Open the video files
    for (int i = 0; i < ratFile.numberOfVideos(); i++) {
-      const char *FileNameToRead = ratFile.getVideoFilenameWithPath(i).c_str();
+      std::string fileString     = ratFile.getVideoFilenameWithPath(i); // soulución al error en ubuntu
+      const char *FileNameToRead = fileString.c_str();
       if (!VideoToAnalyze[i].OpenVideoFile((char *)FileNameToRead)) {
          cout<<"Video File "<<FileNameToRead <<" Could not be opened";
          return;
