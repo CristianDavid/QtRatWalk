@@ -384,7 +384,9 @@ void Video::SelectPoint(int x, int y, int HalfWindowSize, int PointId, int Curre
       yb=(double) FrameProperties[CurrentFrame].TrackedPointsInFrame[3].CoorYCorrected;
 
       Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
-      FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
+      //FrameProperties[CurrentFrame].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
+      // la línea de arriba es un bug corregido heroicamente
+      FrameProperties[CurrentFrame].TrackedPointsInFrame[4].ThetaCorrected=Angle;
 
   }
 }
