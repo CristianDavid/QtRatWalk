@@ -46,3 +46,6 @@ CONFIG   += c++11
 OTHER_FILES += \
     Doxyfile \
     .gitignore
+
+RESOURCES += \
+    icons.qrc

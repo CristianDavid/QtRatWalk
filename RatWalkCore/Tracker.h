@@ -175,6 +175,12 @@ class Tracker {
     */
    void saveCorrectedFile();
 
+   /*!
+    * \brief Produces an array of videos in the rat project
+    * \return Array containing all of the videos
+    */
+   Video *getVideos();
+
 
  private:
    cv::Mat TargetImage, TargetImageGray,

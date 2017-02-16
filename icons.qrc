@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/icons/adwaita/16x16/actions">
+        <file>icons/adwaita/16x16/actions/zoom-fit-best.png</file>
+        <file>icons/adwaita/16x16/actions/zoom-in.png</file>
+        <file>icons/adwaita/16x16/actions/zoom-original.png</file>
+        <file>icons/adwaita/16x16/actions/zoom-out.png</file>
+    </qresource>
+</RCC>

@@ -502,6 +502,10 @@ void Tracker::saveCorrectedFile() {
     ofsCorrected.close();
 }
 
+Video *Tracker::getVideos() {
+    return VideoToAnalyze;
+}
+
 void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();

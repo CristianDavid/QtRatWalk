@@ -3,6 +3,7 @@
 #include <cmath>
 #include <stdexcept>
 
+#include <QColor>
 #include <QPainter>
 #include <QPointF>
 #include <QSize>
@@ -21,7 +22,7 @@ Plotter::Plotter(QWidget *parent)
 
 void Plotter::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
-    painter.setBrush(Qt::lightGray);
+    painter.setBrush(QColor("whitesmoke"));
     painter.drawRect(-1, -1, size().width()+1, size().height()+1);
     painter.drawLine(QPointF(0, size().height()-xAxisPos),
                      QPointF(size().width(), size().height()-xAxisPos)); // eje x
@@ -30,11 +31,6 @@ void Plotter::paintEvent(QPaintEvent *event) {
 
     std::vector<QPointF> translatedPoints = translatePoints();
     painter.drawPolyline(translatedPoints.data(), (int)points.size());
-    painter.setBrush(Qt::black);
-    for (QPointF &center : translatedPoints) {
-        painter.drawEllipse(center, 2, 2);
-    }
-
 }
 
 void Plotter::addPoint(double x, double y) {
