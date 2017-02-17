@@ -96,6 +96,26 @@
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="btnStartStep">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Inicio Paso</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnFinishStep">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Fin Paso</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="btnTraerEsqueleto">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -799,6 +819,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
+    <addaction name="actionExport_angles"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuVentana">
@@ -903,6 +924,11 @@
   <action name="actionDelete_point">
    <property name="text">
     <string>Borrar punto</string>
+   </property>
+  </action>
+  <action name="actionExport_angles">
+   <property name="text">
+    <string>Exportar ángulos</string>
    </property>
   </action>
  </widget>
