@@ -10,8 +10,14 @@
 #include <QSize>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QAction>
+#include <QVariant>
+#include <QString>
+
+#include <string>
 
 #include "RatWalkGui/ImageViewer.h"
+#include "RatWalkGui/AnglePlotter.h"
 #include "RatWalkGui/cvMat2QtImage.h"
 
 namespace RatWalkGui {
@@ -28,21 +34,39 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     ui->mdiArea->addSubWindow(zoomedRegionWindow);
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
-    QWidget *plottersSubWindows[] = {
-        ui->angle1SubWindow->parentWidget(),
-        ui->angle2SubWindow->parentWidget(),
-        ui->angle3SubWindow->parentWidget(),
-        ui->angle4SubWindow->parentWidget(),
-        ui->angle5SubWindow->parentWidget()
-    };
-    for (auto *plotter : plottersSubWindows) {
-        plotter->hide();
+
+    for (int i = 0; i < anglePlotters.size(); i++) {
+        QAction      *showAngleAction;
+        AnglePlotter *anglePlotterPtr = new AnglePlotter;
+        QVariant      angleActionData;
+        std::string   angleName = "T" + std::to_string(i+1);
+        QString       nombreAccion  = QString::fromStdString("Mostrar " + angleName);
+        anglePlotterPtr->setWindowTitle(angleName.c_str());
+        ui->mdiArea->addSubWindow(anglePlotterPtr);
+        anglePlotterPtr->parentWidget()->hide();
+        showAngleAction = ui->menuShow_angles->addAction(nombreAccion);
+        angleActionData.setValue<QWidget*>(anglePlotterPtr);
+        showAngleAction->setData(angleActionData);
+        QObject::connect(showAngleAction, &QAction::triggered,
+                         this,            &MdiMainWindow::onActionsShowSubWindowTriggered);
     }
 
     for (QMdiSubWindow *sub : ui->mdiArea->subWindowList()) {
-        sub->installEventFilter(this);
         sub->setAttribute(Qt::WA_DeleteOnClose, false);
     }
+
+    QVariant projectSubWindowData;
+    projectSubWindowData.setValue<QWidget*>(ui->projectSubWindow);
+    ui->actionShow_projects->setData(projectSubWindowData);
+    QObject::connect(ui->actionShow_projects, &QAction::triggered,
+                     this, &MdiMainWindow::onActionsShowSubWindowTriggered);
+
+    QVariant videoSubWindowData;
+    videoSubWindowData.setValue<QWidget*>(ui->videoSubWindow);
+    ui->actionShow_video->setData(videoSubWindowData);
+    QObject::connect(ui->actionShow_video, &QAction::triggered,
+                     this, &MdiMainWindow::onActionsShowSubWindowTriggered);
+
 }
 
 MdiMainWindow::~MdiMainWindow() {
@@ -57,10 +81,9 @@ void MdiMainWindow::reloadFrame() {
                        ratWalkTracker->getFrameWithRectangle();
     QImage frame = cvMat2QtImage(mat);
     ui->pnlFrame->setImage(frame);
-    RatWalkGui::Plotter *plotters[] = {ui->plotterT1, ui->plotterT2, ui->plotterT3, ui->plotterT4, ui->plotterT5};
     RatWalkCore::Video  *videos = ratWalkTracker->getVideos();
-    for (RatWalkGui::Plotter *plotter : plotters) {
-        plotter->clearPoints();
+    for (auto *anglePlotter : anglePlotters) {
+        anglePlotter->getPlotter()->clearPoints();
     }
     for (int i = 0, globalFrame = 0; i < 3; i++) {
         RatWalkCore::Video &video = videos[i];
@@ -69,9 +92,9 @@ void MdiMainWindow::reloadFrame() {
             for (int k = 0; k < frame.NumberOfPointsToTrack; k++) {
                 if (k < frame.NumberOfTRegisteredPoints) {
                     RatWalkCore::ControlPoint &point = frame.TrackedPointsInFrame[k];
-                    plotters[k]->addPoint(globalFrame, point.ThetaCorrected);
+                    anglePlotters[k]->getPlotter()->addPoint(globalFrame, point.ThetaCorrected);
                 } else {
-                    plotters[k]->addPoint(globalFrame, -1);
+                    anglePlotters[k]->getPlotter()->addPoint(globalFrame, -1);
                 }
             }
         }
@@ -161,16 +184,7 @@ void MdiMainWindow::mouseMoveEventOnPnlFrame(QMouseEvent *event) {
 }
 
 bool MdiMainWindow::eventFilter(QObject *watched, QEvent *event) {
-    QMdiSubWindow *subWindow;
-    if ( event->type() == QEvent::Close &&
-         (subWindow = qobject_cast<QMdiSubWindow*>(watched)) != nullptr) {
-        if (subWindow == ui->videoSubWindow->parentWidget()) {
-            ui->actionShow_video->setChecked(false);
-        } else if (subWindow == ui->projectSubWindow->parentWidget()) {
-            ui->actionShow_projects->setChecked(false);
-        }
-        return true;
-    } else if (watched == ui->pnlFrame && ratWalkTracker != nullptr) {
+    if (watched == ui->pnlFrame && ratWalkTracker != nullptr) {
         switch (event->type()) {
             case QEvent::MouseButtonPress:
                 mousePressEventOnPnlFrame((QMouseEvent*)event);
@@ -190,6 +204,13 @@ bool MdiMainWindow::eventFilter(QObject *watched, QEvent *event) {
 }
 
 } // namespace RatWalkGui
+
+void RatWalkGui::MdiMainWindow::onActionsShowSubWindowTriggered() {
+    QAction *senderAction    = static_cast<QAction*>(sender());
+    QWidget *subWindowWidget = senderAction->data().value<QWidget*>();
+    subWindowWidget->parentWidget()->show();
+    subWindowWidget->show();
+}
 
 void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    using RatWalkCore::Tracker;
@@ -225,9 +246,9 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
 
    Video *videos = ratWalkTracker->getVideos();
    int totalFrames = videos[0].NumberOfFrames + videos[1].NumberOfFrames + videos[2].NumberOfFrames;
-   for (auto *plotter : {ui->plotterT1, ui->plotterT2, ui->plotterT3, ui->plotterT4, ui->plotterT5}) {
-       plotter->setXAxisLength(totalFrames);
-       plotter->setYAxisLength(360);
+   for (auto *anglePlotter : anglePlotters) {
+       anglePlotter->getPlotter()->setXAxisLength(totalFrames);
+       anglePlotter->getPlotter()->setYAxisLength(360);
    }
 }
 
@@ -308,7 +329,6 @@ void RatWalkGui::MdiMainWindow::on_spinBoxCambiarFrame_valueChanged(int value) {
 
 void RatWalkGui::MdiMainWindow::on_twProjecto_doubleClicked(const QModelIndex &index) {
    if (index.parent().isValid()) {
-      qDebug() << (ui->videoSubWindow->isHidden());
       ratWalkTracker->setCurrentVideo(index.row());
       bool signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
       ui->spinBoxCambiarFrame->setValue(ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame);
@@ -329,147 +349,3 @@ void RatWalkGui::MdiMainWindow::on_actionDelete_point_triggered() {
     reloadFrame();
 }
 
-void RatWalkGui::MdiMainWindow::on_actionShow_projects_toggled(bool checked) {
-    if (checked) {
-        ui->projectSubWindow->parentWidget()->show();
-        ui->projectSubWindow->show();
-    } else {
-        ui->projectSubWindow->parentWidget()->hide();
-    }
-}
-
-void RatWalkGui::MdiMainWindow::on_actionShow_video_toggled(bool checked) {
-    if (checked) {
-        ui->videoSubWindow->parentWidget()->show();
-        ui->videoSubWindow->show();
-    } else {
-        ui->videoSubWindow->parentWidget()->hide();
-    }
-}
-
-void RatWalkGui::MdiMainWindow::on_actionShow_T1_toggled(bool checked) {
-    if (checked) {
-        ui->angle1SubWindow->parentWidget()->show();
-        ui->angle1SubWindow->show();
-    } else {
-        ui->angle1SubWindow->parentWidget()->hide();
-    }
-}
-
-void RatWalkGui::MdiMainWindow::on_actionShow_T2_toggled(bool checked) {
-    if (checked) {
-        ui->angle2SubWindow->parentWidget()->show();
-        ui->angle2SubWindow->show();
-    } else {
-        ui->angle2SubWindow->parentWidget()->hide();
-    }
-}
-
-void RatWalkGui::MdiMainWindow::on_actionShow_T3_toggled(bool checked) {
-    if (checked) {
-        ui->angle3SubWindow->parentWidget()->show();
-        ui->angle3SubWindow->show();
-    } else {
-        ui->angle3SubWindow->parentWidget()->hide();
-    }
-}
-
-void RatWalkGui::MdiMainWindow::on_actionShow_T4_toggled(bool checked) {
-    if (checked) {
-        ui->angle4SubWindow->parentWidget()->show();
-        ui->angle4SubWindow->show();
-    } else {
-        ui->angle4SubWindow->parentWidget()->hide();
-    }
-}
-
-void RatWalkGui::MdiMainWindow::on_actionShow_T5_toggled(bool checked) {
-    if (checked) {
-        ui->angle5SubWindow->parentWidget()->show();
-        ui->angle5SubWindow->show();
-    } else {
-        ui->angle5SubWindow->parentWidget()->hide();
-    }
-}
-
-/********************************************
- *
- * Callbacks for zooming the plotters,
- * this is terrible hardcoding
- *
- * ******************************************/
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomInT1_clicked() {
-    QSize defaultSize = ui->plotterT1->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT1->resize(ui->plotterT1->size() + defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomOutT1_clicked() {
-    QSize defaultSize = ui->plotterT1->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT1->resize(ui->plotterT1->size() - defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomFitBestT1_clicked() {
-    QSize defaultSize = ui->plotterT1->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT1->resize(defaultSize);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomInT2_clicked() {
-    QSize defaultSize = ui->plotterT2->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT2->resize(ui->plotterT2->size() + defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomOutT2_clicked() {
-    QSize defaultSize = ui->plotterT2->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT2->resize(ui->plotterT2->size() - defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomFitBestT2_clicked() {
-    QSize defaultSize = ui->plotterT2->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT2->resize(defaultSize);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomInT3_clicked() {
-    QSize defaultSize = ui->plotterT3->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT3->resize(ui->plotterT3->size() + defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomOutT3_clicked() {
-    QSize defaultSize = ui->plotterT3->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT3->resize(ui->plotterT3->size() - defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomFitBestT3_clicked() {
-    QSize defaultSize = ui->plotterT3->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT3->resize(defaultSize);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomInT4_clicked() {
-    QSize defaultSize = ui->plotterT4->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT4->resize(ui->plotterT4->size() + defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomOutT4_clicked() {
-    QSize defaultSize = ui->plotterT4->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT4->resize(ui->plotterT4->size() - defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomFitBestT4_clicked() {
-    QSize defaultSize = ui->plotterT4->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT4->resize(defaultSize);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomInT5_clicked() {
-    QSize defaultSize = ui->plotterT5->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT5->resize(ui->plotterT5->size() + defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomOutT5_clicked() {
-    QSize defaultSize = ui->plotterT5->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT5->resize(ui->plotterT5->size() - defaultSize*0.1);
-}
-
-void RatWalkGui::MdiMainWindow::on_toolBtnZoomFitBestT5_clicked() {
-    QSize defaultSize = ui->plotterT5->parentWidget()->size() - QSize(1, 1);
-    ui->plotterT5->resize(defaultSize);
-}

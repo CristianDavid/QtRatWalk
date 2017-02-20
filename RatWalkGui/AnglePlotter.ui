@@ -1,9 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <author/>
- <comment/>
- <exportmacro/>
- <class>AnglePlotter</class>
- <widget class="QWidget" name="AnglePlotter">
+ <class>RatWalkGui::AnglePlotter</class>
+ <widget class="QWidget" name="RatWalkGui::AnglePlotter">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,9 +11,120 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Ángulo</string>
   </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>false</bool>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <widget class="RatWalkGui::Plotter" name="plotter">
+      <property name="geometry">
+       <rect>
+        <x>121</x>
+        <y>90</y>
+        <width>139</width>
+        <height>68</height>
+       </rect>
+      </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameTools">
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QToolButton" name="toolBtnZoomIn">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/icons/adwaita/16x16/actions/icons/adwaita/16x16/actions/zoom-in.png</normaloff>:/icons/adwaita/16x16/actions/icons/adwaita/16x16/actions/zoom-in.png</iconset>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolBtnZoomOut">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/icons/adwaita/16x16/actions/icons/adwaita/16x16/actions/zoom-out.png</normaloff>:/icons/adwaita/16x16/actions/icons/adwaita/16x16/actions/zoom-out.png</iconset>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolBtnZoomFitBest">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/icons/adwaita/16x16/actions/icons/adwaita/16x16/actions/zoom-fit-best.png</normaloff>:/icons/adwaita/16x16/actions/icons/adwaita/16x16/actions/zoom-fit-best.png</iconset>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
- <pixmapfunction/>
+ <customwidgets>
+  <customwidget>
+   <class>RatWalkGui::Plotter</class>
+   <extends>QWidget</extends>
+   <header>RatWalkGui/Plotter.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

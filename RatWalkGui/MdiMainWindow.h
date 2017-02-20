@@ -1,10 +1,13 @@
 #ifndef RATWALKGUI_MDIMAINWINDOW_H
 #define RATWALKGUI_MDIMAINWINDOW_H
 
+#include <array>
+
 #include <QMainWindow>
 
 #include "RatWalkCore/Tracker.h"
 #include "RatWalkGui/ImageViewer.h"
+#include "RatWalkGui/AnglePlotter.h"
 
 namespace RatWalkGui {
 
@@ -36,6 +39,8 @@ private:
    int pointToGrabId(QPoint pos, double radius);
 
 private slots:
+   void onActionsShowSubWindowTriggered();
+
    void on_actionOpen_triggered();
 
    void on_actionSave_triggered();
@@ -58,39 +63,13 @@ private slots:
 
    void on_actionDelete_point_triggered();
 
-   void on_actionShow_projects_toggled(bool checked);
-
-   void on_actionShow_video_toggled(bool checked);
-
-   void on_actionShow_T1_toggled(bool checked);
-   void on_actionShow_T2_toggled(bool checked);
-   void on_actionShow_T3_toggled(bool checked);
-   void on_actionShow_T4_toggled(bool checked);
-   void on_actionShow_T5_toggled(bool checked);
-
-   //this slots are a terrible case of hardcoding
-   void on_toolBtnZoomInT1_clicked();
-   void on_toolBtnZoomOutT1_clicked();
-   void on_toolBtnZoomFitBestT1_clicked();
-   void on_toolBtnZoomInT2_clicked();
-   void on_toolBtnZoomOutT2_clicked();
-   void on_toolBtnZoomFitBestT2_clicked();
-   void on_toolBtnZoomInT3_clicked();
-   void on_toolBtnZoomOutT3_clicked();
-   void on_toolBtnZoomFitBestT3_clicked();
-   void on_toolBtnZoomInT4_clicked();
-   void on_toolBtnZoomOutT4_clicked();
-   void on_toolBtnZoomFitBestT4_clicked();
-   void on_toolBtnZoomInT5_clicked();
-   void on_toolBtnZoomOutT5_clicked();
-   void on_toolBtnZoomFitBestT5_clicked();
-
 private:
    Ui::MdiMainWindow *ui;
    RatWalkCore::Tracker *ratWalkTracker;
    ImageViewer *zoomedRegionWindow;
    QPoint imageViewerClickedPos;
    int grabbedPointId;
+   std::array<RatWalkGui::AnglePlotter*, 5> anglePlotters;
 };
 
 
