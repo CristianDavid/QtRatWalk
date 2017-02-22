@@ -20,7 +20,8 @@ SOURCES += main.cpp \
     RatWalkCore/Video.cpp \
     RatWalkGui/Plotter.cpp \
     RatWalkGui/MdiMainWindow.cpp \
-    RatWalkGui/AnglePlotter.cpp
+    RatWalkGui/AnglePlotter.cpp \
+    RatWalkCore/StepRegister.cpp
 
 HEADERS  += \
     RatWalkCore/Points.h \
@@ -36,7 +37,8 @@ HEADERS  += \
     RatWalkCore/RatWalkCore.h \
     RatWalkGui/Plotter.h \
     RatWalkGui/MdiMainWindow.h \
-    RatWalkGui/AnglePlotter.h
+    RatWalkGui/AnglePlotter.h \
+    RatWalkCore/StepRegister.h
 
 FORMS    += RatWalkGui/MainWindow.ui \
     RatWalkGui/MdiMainWindow.ui \
