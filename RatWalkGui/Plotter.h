@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <QWidget>
+#include <QPoint>
 #include <QPointF>
 
 namespace RatWalkGui {
@@ -25,7 +26,7 @@ public:
      * @brief Creates a new Plotter widget.
      * @param[in] parent Pointer to the parent widget of this Plotter
      */
-    Plotter(QWidget *parent = 0);
+    explicit Plotter(QWidget *parent = 0);
 
     /**
      * @brief Adds a new point to plot
@@ -85,6 +86,19 @@ public:
      */
     void setYAxisLength(double len);
 
+    void setXRange(double minX, double maxX);
+
+    void setYRange(double minY, double maxY);
+
+    QPointF realPoint2LogicPoint(QPointF realPoint);
+
+    double logicXRangeLen();
+
+    double logicYRangeLen();
+
+    void addVerticalLine(double pos);
+    void clearVerticalLines();
+
 protected:
     /**
      * @brief Draws the widget including the currently added points and the axises
@@ -93,16 +107,18 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
+
+    QPointF logicPoint2RealPoint(QPointF logicPoint);
+
     /**
-     * @brief Translates the points in order to get them ready to be plotter.
+     * @brief Translates the points in order to get them ready to be plotted.
      * @return A vector with the points ready to be drawn.
      */
     std::vector<QPointF> translatePoints();
     std::vector<QPointF> points;
-    double xAxisLength,
-           yAxisLength;
-    double xAxisPos,
-           yAxisPos;
+    double minX, maxX;
+    double minY, maxY;
+    std::vector<double> verticalLines;
 };
 
 } // namespace RatWalkGui

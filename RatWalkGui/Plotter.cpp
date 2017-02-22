@@ -14,21 +14,29 @@ namespace RatWalkGui {
 Plotter::Plotter(QWidget *parent)
   : QWidget(parent) {
     setAttribute(Qt::WA_OpaquePaintEvent);
-    xAxisLength = 100;
-    yAxisLength = 100;
-    xAxisPos    = 20;
-    yAxisPos    = 20;
+    setXRange(-5, 100);
+    setYRange(-5, 100);
 }
 
 void Plotter::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
     painter.setBrush(QColor("whitesmoke"));
     painter.drawRect(-1, -1, size().width()+1, size().height()+1);
-    painter.drawLine(QPointF(0, size().height()-xAxisPos),
-                     QPointF(size().width(), size().height()-xAxisPos)); // eje x
-    painter.drawLine(QPointF(xAxisPos, 0),
-                     QPointF(xAxisPos, size().height())); // eje y
+    painter.setPen(Qt::red);
+    painter.drawLine(logicPoint2RealPoint(QPointF(minX, 0)),
+                     logicPoint2RealPoint(QPointF(maxX, 0))); // eje x
+    painter.setPen(Qt::blue);
+    painter.drawLine(logicPoint2RealPoint(QPointF(0, minY)),
+                     logicPoint2RealPoint(QPointF(0, maxY))); // eje y
 
+    for (double logicX : verticalLines) {
+        painter.setPen(Qt::lightGray);
+        painter.drawLine(logicPoint2RealPoint(QPointF(logicX, minY)),
+                         logicPoint2RealPoint(QPointF(logicX, maxY)));
+    }
+
+
+    painter.setPen(Qt::black);
     std::vector<QPointF> translatedPoints = translatePoints();
     painter.drawPolyline(translatedPoints.data(), (int)points.size());
 }
@@ -59,28 +67,68 @@ void Plotter::setXAxisLength(double len) {
     if (std::isnan(len) || len <= 0) {
         throw std::invalid_argument("std::isnan(len) || len <= 0");
     }
-    xAxisLength = len;
+    setXRange(0, len);
 }
 
 void Plotter::setYAxisLength(double len) {
     if (std::isnan(len) || len <= 0) {
         throw std::invalid_argument("std::isnan(len) || len <= 0");
     }
-    yAxisLength = len;
+    setYRange(0, len);
+}
+
+void Plotter::setXRange(double minX, double maxX) {
+    this->minX = minX;
+    this->maxX = maxX;
+}
+
+void Plotter::setYRange(double minY, double maxY) {
+    this->minY = minY;
+    this->maxY = maxY;
+}
+
+QPointF Plotter::realPoint2LogicPoint(QPointF realPoint) {
+    double logicX = logicXRangeLen() / double(size().width())
+                    * realPoint.x() + minX;
+    double logicY = logicYRangeLen() / double(size().height())
+                    * (size().height() - realPoint.y()) + minY;
+    return QPointF(logicX, logicY);
+}
+
+QPointF Plotter::logicPoint2RealPoint(QPointF logicPoint) {
+    double realX = logicPoint.x() - minX;
+           realX = double(size().width())  / logicXRangeLen() * realX;
+    double realY = logicPoint.y() - minY;
+           realY = double(size().height()) / logicYRangeLen() * realY;
+           realY = size().height() - realY;
+    return QPointF(realX, realY);
 }
 
 std::vector<QPointF> Plotter::translatePoints() {
     std::vector<QPointF> translatedPoints;
-    double xOffset = size().width()  - yAxisPos;
-    double yOffset = size().height() - xAxisPos;
     for (QPointF &point : points) {
-        double newX = point.x() * xOffset / xAxisLength;
-        double newY = point.y() * yOffset / yAxisLength;
-        newX = newX    + yAxisPos;
-        newY = yOffset - newY;
-        translatedPoints.push_back(QPointF(newX, newY));
+        translatedPoints.push_back(logicPoint2RealPoint(point));
     }
     return translatedPoints;
 }
+
+double Plotter::logicXRangeLen() {
+    return maxX - minX;
+}
+
+double Plotter::logicYRangeLen() {
+    return maxY - minY;
+}
+
+void Plotter::addVerticalLine(double pos) {
+    verticalLines.push_back(pos);
+    update();
+}
+
+void Plotter::clearVerticalLines() {
+    verticalLines.clear();
+    update();
+}
+
 
 } // namespace RatWalkGui
