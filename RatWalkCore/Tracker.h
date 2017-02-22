@@ -6,6 +6,7 @@
 #include <vector>
 #include "RatWalkCore/Video.h"
 #include "RatWalkCore/RatFile.h"
+#include "RatWalkCore/StepRegister.h"
 
 #define HalfWindowSize 9
 #define NpointsToTrack 5
@@ -90,12 +91,11 @@ class Tracker {
                          double minDistance = 1.0);
 
    /*!
-    * \brief on_trackbar Cambia el frame actual a la posición indicada
+    * \brief setFrame Cambia el frame actual a la posición indicada
     * \param[in] Position Posición del frame
     * \todo validar posición
-    * \todo quizá este no es el nombre más adecuado para el método
     */
-   void on_trackbar(int Position);
+   void setFrame(int Position);
 
    /*!
     * \brief nextFrame, mueve el frame actual a la siguiente posición
@@ -181,6 +181,7 @@ class Tracker {
     */
    Video *getVideos();
 
+   StepRegister &getCurrentStepRegister();
 
  private:
    cv::Mat TargetImage, TargetImageGray,
@@ -191,6 +192,7 @@ class Tracker {
    int CurrentVideoAnalyzed = 0;
    int PointID = 0;
    RatFile ratFile;
+   StepRegister stepRegisters[3];
 };
 
 } // namespace RatWalkCore

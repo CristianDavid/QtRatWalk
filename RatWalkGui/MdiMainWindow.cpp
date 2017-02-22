@@ -232,6 +232,7 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    ui->horizontalSlider->setMaximum(numberOfFrames-1);
    ui->spinBoxCambiarFrame->setMinimum(0);
    ui->spinBoxCambiarFrame->setMaximum(numberOfFrames-1);
+   onFrameNumberChanged();
 
    QFileInfo fileInfo(fileName);
    QStringList projectName(fileInfo.fileName());
@@ -274,35 +275,15 @@ void RatWalkGui::MdiMainWindow::on_actionClose_triggered() {
 }
 
 void RatWalkGui::MdiMainWindow::on_btnNext_clicked() {
-   bool signalsEnabled;
    ratWalkTracker->nextFrame();
    ratWalkTracker->guardar();
-   int  currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
-
-   signalsEnabled = ui->horizontalSlider->blockSignals(true);
-   ui->horizontalSlider->setValue(currentFrame);
-   ui->horizontalSlider->blockSignals(signalsEnabled);
-
-   signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
-   ui->spinBoxCambiarFrame->setValue(currentFrame);
-   ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
-
+   onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_btnPrev_clicked() {
-   bool signalsEnabled;
    ratWalkTracker->prevFrame();
-   int  currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
-
-   signalsEnabled = ui->horizontalSlider->blockSignals(true);
-   ui->horizontalSlider->setValue(currentFrame);
-   ui->horizontalSlider->blockSignals(signalsEnabled);
-
-   signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
-   ui->spinBoxCambiarFrame->setValue(currentFrame);
-   ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
-
+   onFrameNumberChanged();
    reloadFrame();
 }
 
@@ -316,28 +297,22 @@ void RatWalkGui::MdiMainWindow::on_checkBoxMostrarEsqueleto_stateChanged(int sta
 }
 
 void RatWalkGui::MdiMainWindow::on_horizontalSlider_valueChanged(int value) {
-   ratWalkTracker->on_trackbar(value);
-   bool signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
-   ui->spinBoxCambiarFrame->setValue(value);
-   ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
+   ratWalkTracker->setFrame(value);
+   onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_spinBoxCambiarFrame_valueChanged(int value) {
-   bool signalsEnabled;
-   ratWalkTracker->on_trackbar(value);
-   signalsEnabled = ui->horizontalSlider->blockSignals(true);
-   ui->horizontalSlider->setValue(value);
-   ui->horizontalSlider->blockSignals(signalsEnabled);
+   ratWalkTracker->setFrame(value);
+   onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_twProjecto_doubleClicked(const QModelIndex &index) {
    if (index.parent().isValid()) {
+      stepBegin = -1;
       ratWalkTracker->setCurrentVideo(index.row());
-      bool signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
-      ui->spinBoxCambiarFrame->setValue(ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame);
-      ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
+      onFrameNumberChanged();
       reloadFrame();
    }
 }
@@ -354,3 +329,96 @@ void RatWalkGui::MdiMainWindow::on_actionDelete_point_triggered() {
     reloadFrame();
 }
 
+void RatWalkGui::MdiMainWindow::onFrameNumberChanged() {
+    bool signalsEnabled;
+    int currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    signalsEnabled = ui->horizontalSlider->blockSignals(true);
+    ui->horizontalSlider->setValue(currentFrame);
+    ui->horizontalSlider->blockSignals(signalsEnabled);
+
+    signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
+    ui->spinBoxCambiarFrame->setValue(currentFrame);
+    ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
+    updateStepInfo();
+}
+void RatWalkGui::MdiMainWindow::updateStepInfo() {
+    int currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
+    if (stepBegin == -1) {
+        ui->btnDiscardStep->setEnabled(false);
+        ui->btnDiscardStep->setVisible(false);
+        if (stepRegister.posNotOverlapping(currentFrame)) {
+            ui->statusbar->clearMessage();
+            ui->btnStartStep->setVisible(true);
+            ui->btnStartStep->setEnabled(true);
+            ui->btnFinishStep->setVisible(true);
+            ui->btnFinishStep->setEnabled(false);
+            ui->btnEreaseStep->setVisible(false);
+            ui->btnEreaseStep->setEnabled(false);
+        } else {
+            auto step = stepRegister.getSurroundingStep(currentFrame);
+            ui->statusbar->showMessage(
+                "Inicio de paso: " + QString::number(step.first) +
+                ", Fin de paso: "  + QString::number(step.second)
+            );
+            ui->btnStartStep->setVisible(false);
+            ui->btnStartStep->setEnabled(false);
+            ui->btnEreaseStep->setVisible(true);
+            ui->btnEreaseStep->setEnabled(true);
+            ui->btnFinishStep->setVisible(false);
+            ui->btnFinishStep->setEnabled(false);
+        }
+    } else {
+        ui->btnDiscardStep->setEnabled(true);
+        ui->btnDiscardStep->setVisible(true);
+        ui->btnEreaseStep->setVisible(false);
+        ui->btnEreaseStep->setEnabled(false);
+        ui->statusbar->showMessage(
+            "Paso iniciado en frame: " + QString::number(stepBegin)
+        );
+        ui->btnStartStep->setVisible(false);
+        ui->btnStartStep->setEnabled(false);
+        ui->btnFinishStep->setVisible(true);
+        if (stepBegin < currentFrame) {
+            if (stepRegister.stepNotOverlapping(stepBegin, currentFrame)) {
+                ui->btnFinishStep->setEnabled(true);
+            } else {
+                auto overlap = stepRegister.getSurroundingStep(stepBegin, currentFrame);
+                ui->btnFinishStep->setEnabled(false);
+                ui->statusbar->showMessage(
+                    ui->statusbar->currentMessage() +
+                    ", se traslapa con [" + QString::number(overlap.first) +
+                    "," + QString::number(overlap.second) + "]"
+                );
+            }
+        } else {
+            ui->btnFinishStep->setEnabled(false);
+        }
+    }
+}
+
+
+void RatWalkGui::MdiMainWindow::on_btnStartStep_clicked() {
+    stepBegin = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    updateStepInfo();
+}
+
+void RatWalkGui::MdiMainWindow::on_btnFinishStep_clicked() {
+    RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
+    int stepEnd = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    stepRegister.addStep(stepBegin, stepEnd);
+    stepBegin = -1;
+    updateStepInfo();
+}
+
+void RatWalkGui::MdiMainWindow::on_btnDiscardStep_clicked() {
+    stepBegin = -1;
+    updateStepInfo();
+}
+
+void RatWalkGui::MdiMainWindow::on_btnEreaseStep_clicked() {
+    RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
+    int pos = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    stepRegister.ereaseSurroundingStep(pos);
+    updateStepInfo();
+}

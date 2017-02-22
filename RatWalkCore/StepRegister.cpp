@@ -38,6 +38,23 @@ bool StepRegister::stepNotOverlapping(int begin, int end) {
     return steps.find(step) == steps.end();
 }
 
+bool StepRegister::ereaseSurroundingStep(int pos) {
+    return steps.erase(Step(pos, pos)) == 1;
+}
+
+StepRegister::Step StepRegister::getSurroundingStep(int pos) {
+    return getSurroundingStep(pos, pos);
+}
+
+StepRegister::Step StepRegister::getSurroundingStep(int begin, int end) {
+    auto res = steps.find(Step(begin, end));
+    if (res != steps.end()) {
+        return *res;
+    } else {
+        return Step(-1, -1);
+    }
+}
+
 bool StepRegister::stepLessThan(const Step &a, const Step &b) {
     return a.first < b.first && a.second < b.first;
 }

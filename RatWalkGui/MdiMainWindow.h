@@ -63,12 +63,24 @@ private slots:
 
    void on_actionDelete_point_triggered();
 
+   void on_btnStartStep_clicked();
+
+   void on_btnFinishStep_clicked();
+
+   void on_btnDiscardStep_clicked();
+
+   void on_btnEreaseStep_clicked();
+
 private:
+   void onFrameNumberChanged();
+   void updateStepInfo();
+
    Ui::MdiMainWindow *ui;
    RatWalkCore::Tracker *ratWalkTracker;
    ImageViewer *zoomedRegionWindow;
    QPoint imageViewerClickedPos;
    int grabbedPointId;
+   int stepBegin = -1;
    std::array<RatWalkGui::AnglePlotter*, 5> anglePlotters;
 };
 

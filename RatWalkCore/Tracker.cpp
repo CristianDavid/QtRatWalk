@@ -506,6 +506,10 @@ Video *Tracker::getVideos() {
     return VideoToAnalyze;
 }
 
+StepRegister &Tracker::getCurrentStepRegister() {
+    return stepRegisters[CurrentVideoAnalyzed];
+}
+
 void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
@@ -557,7 +561,7 @@ int Tracker::getClosestPointID(int x, int y, int frameWidth,
    return minId;
 }
 
-void Tracker::on_trackbar(int Position) {
+void Tracker::setFrame(int Position) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    currentVideo.GetFrameNumber((double)Position);
    currentVideo.ShowSkeletonInCurrentFrame();

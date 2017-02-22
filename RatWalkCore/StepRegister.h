@@ -15,6 +15,8 @@ namespace RatWalkCore {
 
 class StepRegister {
 public:
+    typedef std::pair<int, int> Step;
+
     StepRegister();
 
     bool addStep(int begin, int end);
@@ -25,8 +27,13 @@ public:
 
     bool stepNotOverlapping(int begin, int end);
 
+    bool ereaseSurroundingStep(int pos);
+
+    Step getSurroundingStep(int pos);
+
+    Step getSurroundingStep(int begin, int end);
+
 private:
-    typedef std::pair<int, int> Step;
 
     static bool stepLessThan(const Step &a, const Step &b);
 

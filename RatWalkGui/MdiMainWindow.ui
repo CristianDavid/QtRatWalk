@@ -106,12 +106,32 @@
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="btnDiscardStep">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Descartar paso</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="btnFinishStep">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
                 <property name="text">
                  <string>Fin Paso</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnEreaseStep">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Borrar Paso</string>
                 </property>
                </widget>
               </item>
