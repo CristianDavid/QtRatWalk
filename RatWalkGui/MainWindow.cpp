@@ -131,7 +131,7 @@ void MainWindow::on_btnNext_clicked() {
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value) {
-   ratWalkTracker->on_trackbar(value);
+   ratWalkTracker->setFrame(value);
    bool signalsEnabled = ui->spinBoxCambiarFrame->blockSignals(true);
    ui->spinBoxCambiarFrame->setValue(value);
    ui->spinBoxCambiarFrame->blockSignals(signalsEnabled);
@@ -261,7 +261,7 @@ void MainWindow::on_actionGuardar_triggered() {
 
 void MainWindow::on_spinBoxCambiarFrame_valueChanged(int value) {
    bool signalsEnabled;
-   ratWalkTracker->on_trackbar(value);
+   ratWalkTracker->setFrame(value);
    signalsEnabled = ui->horizontalSlider->blockSignals(true);
    ui->horizontalSlider->setValue(value);
    ui->horizontalSlider->blockSignals(signalsEnabled);
