@@ -49,6 +49,7 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
         showAngleAction->setData(angleActionData);
         QObject::connect(showAngleAction, &QAction::triggered,
                          this,            &MdiMainWindow::onActionsShowSubWindowTriggered);
+        anglePlotters[i] = anglePlotterPtr;
     }
 
     for (QMdiSubWindow *sub : ui->mdiArea->subWindowList()) {
@@ -82,7 +83,7 @@ void MdiMainWindow::reloadFrame() {
     QImage frame = cvMat2QtImage(mat);
     ui->pnlFrame->setImage(frame);
     RatWalkCore::Video  *videos = ratWalkTracker->getVideos();
-    for (auto *anglePlotter : anglePlotters) {
+    for (AnglePlotter *anglePlotter : anglePlotters) {
         anglePlotter->getPlotter()->clearPoints();
     }
     for (int i = 0, globalFrame = 0; i < 3; i++) {
@@ -231,7 +232,7 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    ui->horizontalSlider->setMaximum(numberOfFrames-1);
    ui->spinBoxCambiarFrame->setMinimum(0);
    ui->spinBoxCambiarFrame->setMaximum(numberOfFrames-1);
-   reloadFrame();
+
    QFileInfo fileInfo(fileName);
    QStringList projectName(fileInfo.fileName());
    QTreeWidgetItem *projectRootItem = new QTreeWidgetItem(projectName);
@@ -245,11 +246,15 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    ui->twProjecto->addTopLevelItem(projectRootItem);
 
    Video *videos = ratWalkTracker->getVideos();
-   int totalFrames = videos[0].NumberOfFrames + videos[1].NumberOfFrames + videos[2].NumberOfFrames;
-   for (auto *anglePlotter : anglePlotters) {
-       anglePlotter->getPlotter()->setXAxisLength(totalFrames);
-       anglePlotter->getPlotter()->setYAxisLength(360);
+
+   std::vector<int> framesPerVideo;
+   for (int i = 0; i < 3; i++) {
+        framesPerVideo.push_back(videos[i].NumberOfFrames);
    }
+   for (AnglePlotter *anglePlotter : anglePlotters) {
+       anglePlotter->setFramesPerVideo(framesPerVideo);
+   }
+   reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_actionSave_triggered() {
