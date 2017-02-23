@@ -525,12 +525,13 @@ void Tracker::loadStepRegister(const char *filename) {
     std::ifstream inFile(filename);
     if (inFile.is_open()) {
         int video, stepBegin, stepEnd;
-        inFile >> video;
-        while (inFile.get() != ',') continue;
-        inFile >> stepBegin;
-        while (inFile.get() != ',') continue;
-        inFile >> stepEnd;
-        stepRegisters[video].addStep(stepBegin, stepEnd);
+        while (!(inFile >> video).eof()) {
+            while (inFile.get() != ',') continue;
+            inFile >> stepBegin;
+            while (inFile.get() != ',') continue;
+            inFile >> stepEnd;
+            stepRegisters[video].addStep(stepBegin, stepEnd);
+        }
     }
 }
 
