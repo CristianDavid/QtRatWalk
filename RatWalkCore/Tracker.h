@@ -187,6 +187,9 @@ class Tracker {
 
    int getCurrentVideoIndex();
 
+   void loadStepRegister(const char *filename);
+   void saveStepRegister(const char *filename);
+
  private:
    cv::Mat TargetImage, TargetImageGray,
            Image1,     Image2,       Image3,

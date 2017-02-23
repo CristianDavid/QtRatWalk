@@ -45,6 +45,8 @@ Tracker::Tracker(const char *fileName) :
       }
    }
 
+   loadStepRegister("StepRegister.csv");
+
    ////////////
    //PERFORM THE CORRECTION OF THE VIDEOS
    /////////////
@@ -408,6 +410,7 @@ void Tracker::guardar() {
    }
    ofs.close();
    saveCorrectedFile();
+   saveStepRegister("StepRegister.csv");
 }
 
 void Tracker::traeEsqueleto() {
@@ -516,6 +519,29 @@ StepRegister &Tracker::getCurrentStepRegister() {
 
 int Tracker::getCurrentVideoIndex() {
     return CurrentVideoAnalyzed;
+}
+
+void Tracker::loadStepRegister(const char *filename) {
+    std::ifstream inFile(filename);
+    if (inFile.is_open()) {
+        int video, stepBegin, stepEnd;
+        inFile >> video;
+        while (inFile.get() != ',') continue;
+        inFile >> stepBegin;
+        while (inFile.get() != ',') continue;
+        inFile >> stepEnd;
+        stepRegisters[video].addStep(stepBegin, stepEnd);
+    }
+}
+
+void Tracker::saveStepRegister(const char *filename) {
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) return;
+    for (int i = 0; i < 3; i++) {
+        for (auto step : stepRegisters[i].getSteps()) {
+            outFile << i << ',' << step.first << ',' << step.second << std::endl;
+        }
+    }
 }
 
 void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {

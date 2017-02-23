@@ -74,6 +74,7 @@ private slots:
 private:
    void onFrameNumberChanged();
    void updateStepInfo();
+   void loadSteps();
 
    Ui::MdiMainWindow *ui;
    RatWalkCore::Tracker *ratWalkTracker;
