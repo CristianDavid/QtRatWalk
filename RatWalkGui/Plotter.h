@@ -1,6 +1,7 @@
 #ifndef PLOTTER_H
 #define PLOTTER_H
 
+#include <utility>
 #include <vector>
 #include <QWidget>
 #include <QPoint>
@@ -99,6 +100,9 @@ public:
     void addVerticalLine(double pos);
     void clearVerticalLines();
 
+    void addVerticalRect(double xBegin, double xEnd);
+    void clearVerticalRects();
+
 protected:
     /**
      * @brief Draws the widget including the currently added points and the axises
@@ -119,6 +123,7 @@ private:
     double minX, maxX;
     double minY, maxY;
     std::vector<double> verticalLines;
+    std::vector<std::pair<double, double>> verticalRects;
 };
 
 } // namespace RatWalkGui

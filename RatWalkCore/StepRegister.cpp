@@ -9,6 +9,7 @@
 
 #include <set>
 #include <utility>
+#include <vector>
 
 namespace RatWalkCore {
 
@@ -53,6 +54,14 @@ StepRegister::Step StepRegister::getSurroundingStep(int begin, int end) {
     } else {
         return Step(-1, -1);
     }
+}
+
+std::vector<StepRegister::Step> StepRegister::getSteps() {
+    std::vector<Step> stepVector;
+    for (const Step &step : steps) {
+        stepVector.push_back(step);
+    }
+    return stepVector;
 }
 
 bool StepRegister::stepLessThan(const Step &a, const Step &b) {

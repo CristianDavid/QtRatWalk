@@ -181,7 +181,11 @@ class Tracker {
     */
    Video *getVideos();
 
+   StepRegister *getStepRegisters();
+
    StepRegister &getCurrentStepRegister();
+
+   int getCurrentVideoIndex();
 
  private:
    cv::Mat TargetImage, TargetImageGray,

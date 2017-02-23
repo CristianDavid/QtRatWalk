@@ -34,6 +34,19 @@ void AnglePlotter::setFramesPerVideo(std::vector<int> &framesPerVideo) {
     ui->plotter->setXRange(-5, sum);
 }
 
+void AnglePlotter::addStep(int video, int beginFrame, int endFrame) {
+    int offset = 0;
+    for (int i = 0; i < video; i++) {
+        offset += framesPerVideo[i];
+    }
+    ui->plotter->addVerticalRect(offset + beginFrame,
+                                 offset + endFrame);
+}
+
+void AnglePlotter::clearSteps() {
+    ui->plotter->clearVerticalRects();
+}
+
 Plotter *AnglePlotter::getPlotter() {
     return ui->plotter;
 }

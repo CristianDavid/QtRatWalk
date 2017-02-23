@@ -506,8 +506,16 @@ Video *Tracker::getVideos() {
     return VideoToAnalyze;
 }
 
+StepRegister *Tracker::getStepRegisters() {
+    return stepRegisters;
+}
+
 StepRegister &Tracker::getCurrentStepRegister() {
     return stepRegisters[CurrentVideoAnalyzed];
+}
+
+int Tracker::getCurrentVideoIndex() {
+    return CurrentVideoAnalyzed;
 }
 
 void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {

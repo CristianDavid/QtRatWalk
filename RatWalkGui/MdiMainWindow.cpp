@@ -407,6 +407,10 @@ void RatWalkGui::MdiMainWindow::on_btnFinishStep_clicked() {
     RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
     int stepEnd = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
     stepRegister.addStep(stepBegin, stepEnd);
+    int videoIdx = ratWalkTracker->getCurrentVideoIndex();
+    for (AnglePlotter *plotter : anglePlotters) {
+        plotter->addStep(videoIdx, stepBegin, stepEnd);
+    }
     stepBegin = -1;
     updateStepInfo();
 }
@@ -417,8 +421,23 @@ void RatWalkGui::MdiMainWindow::on_btnDiscardStep_clicked() {
 }
 
 void RatWalkGui::MdiMainWindow::on_btnEreaseStep_clicked() {
-    RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
+    using RatWalkCore::StepRegister;
+
+    StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
     int pos = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
     stepRegister.ereaseSurroundingStep(pos);
+    for (AnglePlotter *plotter : anglePlotters) {
+        plotter->clearSteps();
+    }
+
+    StepRegister *registers = ratWalkTracker->getStepRegisters();
+    for (int i = 0; i < 3; i++) {
+        std::vector<StepRegister::Step> steps = registers[i].getSteps();
+        for (auto step : steps) {
+            for (AnglePlotter *plotter : anglePlotters) {
+                plotter->addStep(i, step.first, step.second);
+            }
+        }
+    }
     updateStepInfo();
 }

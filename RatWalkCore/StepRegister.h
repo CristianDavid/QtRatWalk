@@ -10,6 +10,7 @@
 
 #include <set>
 #include <utility>
+#include <vector>
 
 namespace RatWalkCore {
 
@@ -32,6 +33,8 @@ public:
     Step getSurroundingStep(int pos);
 
     Step getSurroundingStep(int begin, int end);
+
+    std::vector<Step> getSteps();
 
 private:
 

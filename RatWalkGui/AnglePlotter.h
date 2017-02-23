@@ -20,6 +20,8 @@ public:
     explicit AnglePlotter(QWidget *parent = 0);
     ~AnglePlotter();
     void setFramesPerVideo(std::vector<int> &framesPerVideo);
+    void addStep(int video, int beginFrame, int endFrame);
+    void clearSteps();
     Plotter *getPlotter();
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QPointF>
 #include <QSize>
+#include <QRectF>
 #include <QDebug>
 
 namespace RatWalkGui {
@@ -29,12 +30,19 @@ void Plotter::paintEvent(QPaintEvent *event) {
     painter.drawLine(logicPoint2RealPoint(QPointF(0, minY)),
                      logicPoint2RealPoint(QPointF(0, maxY))); // eje y
 
+    painter.setPen(Qt::lightGray);
     for (double logicX : verticalLines) {
-        painter.setPen(Qt::lightGray);
         painter.drawLine(logicPoint2RealPoint(QPointF(logicX, minY)),
                          logicPoint2RealPoint(QPointF(logicX, maxY)));
     }
 
+    painter.setPen(QColor(255, 0, 0, 100));
+    painter.setBrush(QColor(255, 0, 0, 100));
+    for (const std::pair<double, double> &rectInfo : verticalRects) {
+        QRectF rectangle(logicPoint2RealPoint(QPointF(rectInfo.first,  maxY)),
+                        logicPoint2RealPoint(QPointF(rectInfo.second, minY)));
+        painter.drawRect(rectangle);
+    }
 
     painter.setPen(Qt::black);
     std::vector<QPointF> translatedPoints = translatePoints();
@@ -127,6 +135,16 @@ void Plotter::addVerticalLine(double pos) {
 
 void Plotter::clearVerticalLines() {
     verticalLines.clear();
+    update();
+}
+
+void Plotter::addVerticalRect(double xBegin, double xEnd) {
+    verticalRects.push_back(std::make_pair(xBegin, xEnd));
+    update();
+}
+
+void Plotter::clearVerticalRects() {
+    verticalRects.clear();
     update();
 }
 
