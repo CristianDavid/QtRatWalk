@@ -10,6 +10,8 @@
 #include <QSize>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QStatusBar>
+#include <QSizePolicy>
 #include <QAction>
 #include <QVariant>
 #include <QString>
@@ -30,7 +32,9 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     imageViewerClickedPos(),
     grabbedPointId(-1) {
     ui->setupUi(this);
-
+    videoStatusBar = new QStatusBar;
+    videoStatusBar->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Maximum);
+    ui->statusBarLayout->addWidget(videoStatusBar);
     ui->mdiArea->addSubWindow(zoomedRegionWindow);
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
@@ -347,7 +351,7 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
         ui->btnDiscardStep->setEnabled(false);
         ui->btnDiscardStep->setVisible(false);
         if (stepRegister.posNotOverlapping(currentFrame)) {
-            ui->statusbar->clearMessage();
+            videoStatusBar->clearMessage();
             ui->btnStartStep->setVisible(true);
             ui->btnStartStep->setEnabled(true);
             ui->btnFinishStep->setVisible(true);
@@ -356,7 +360,7 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
             ui->btnEreaseStep->setEnabled(false);
         } else {
             auto step = stepRegister.getSurroundingStep(currentFrame);
-            ui->statusbar->showMessage(
+            videoStatusBar->showMessage(
                 "Inicio de paso: " + QString::number(step.first) +
                 ", Fin de paso: "  + QString::number(step.second)
             );
@@ -372,7 +376,7 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
         ui->btnDiscardStep->setVisible(true);
         ui->btnEreaseStep->setVisible(false);
         ui->btnEreaseStep->setEnabled(false);
-        ui->statusbar->showMessage(
+        videoStatusBar->showMessage(
             "Paso iniciado en frame: " + QString::number(stepBegin)
         );
         ui->btnStartStep->setVisible(false);
@@ -384,8 +388,8 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
             } else {
                 auto overlap = stepRegister.getSurroundingStep(stepBegin, currentFrame);
                 ui->btnFinishStep->setEnabled(false);
-                ui->statusbar->showMessage(
-                    ui->statusbar->currentMessage() +
+                videoStatusBar->showMessage(
+                    videoStatusBar->currentMessage() +
                     ", se traslapa con [" + QString::number(overlap.first) +
                     "," + QString::number(overlap.second) + "]"
                 );

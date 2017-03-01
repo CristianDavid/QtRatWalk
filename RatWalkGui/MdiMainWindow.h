@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <QMainWindow>
+#include <QStatusBar>
 
 #include "RatWalkCore/Tracker.h"
 #include "RatWalkGui/AnglePlotter.h"
@@ -91,6 +92,7 @@ private:
    int grabbedPointId;
    int stepBegin = -1;
    std::array<RatWalkGui::AnglePlotter*, 5> anglePlotters;
+   QStatusBar *videoStatusBar;
 };
 
 

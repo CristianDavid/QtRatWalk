@@ -52,6 +52,9 @@
         <string>Video</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="bottomMargin">
+         <number>1</number>
+        </property>
         <item>
          <widget class="QWidget" name="ratWalkFrame" native="true">
           <property name="enabled">
@@ -61,6 +64,9 @@
            <bool>false</bool>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QFrame" name="pnlTools">
              <property name="enabled">
@@ -252,6 +258,9 @@
               </item>
              </layout>
             </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="statusBarLayout"/>
            </item>
           </layout>
          </widget>
