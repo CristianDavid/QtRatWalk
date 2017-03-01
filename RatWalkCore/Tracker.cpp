@@ -545,6 +545,10 @@ void Tracker::saveStepRegister(const char *filename) {
     }
 }
 
+string Tracker::getProjectName() {
+   return ratFile.getProjectName();
+}
+
 void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();

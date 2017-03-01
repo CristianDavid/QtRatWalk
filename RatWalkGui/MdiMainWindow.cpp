@@ -16,11 +16,13 @@
 #include <QVariant>
 #include <QString>
 
+#include <cstring>
 #include <string>
 
 #include "RatWalkGui/ImageViewer.h"
 #include "RatWalkGui/AnglePlotter.h"
 #include "RatWalkGui/cvMat2QtImage.h"
+#include "RatWalkGui/ExportAnglesDialog.h"
 
 namespace RatWalkGui {
 
@@ -476,4 +478,24 @@ void RatWalkGui::MdiMainWindow::on_btnEreaseStep_clicked() {
 
     loadSteps();
     updateStepInfo();
+}
+
+void RatWalkGui::MdiMainWindow::on_actionExport_angles_triggered() {
+   using namespace RatWalkGui;
+   using RatWalkCore::Tracker;
+   std::vector<const char*> openProjectsNames;
+   for (ProjectPtr projectPtr : projects) {
+      std::string projectName = projectPtr->getProjectName();
+      char *cstr = new char[projectName.length()];
+      std::strcpy(cstr, projectName.c_str());
+      openProjectsNames.push_back(cstr);
+   }
+   ExportAnglesDialog *dialog = new ExportAnglesDialog(
+         openProjectsNames,
+         this
+   );
+   dialog->exec();
+   for (auto cstr : openProjectsNames) {
+      delete[] cstr;
+   }
 }

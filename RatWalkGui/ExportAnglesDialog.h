@@ -1,7 +1,14 @@
 #ifndef RATWALKGUI_EXPORTANGLESDIALOG_H
 #define RATWALKGUI_EXPORTANGLESDIALOG_H
 
+#include <map>
+#include <memory>
+#include <vector>
+#include <QComboBox>
 #include <QDialog>
+#include <QFrame>
+#include <QLabel>
+#include <RatWalkCore/Tracker.h>
 
 namespace RatWalkGui {
 
@@ -9,16 +16,32 @@ namespace Ui {
 class ExportAnglesDialog;
 }
 
-class ExportAnglesDialog : public QDialog
-{
-    Q_OBJECT
-
+class ExportAnglesDialog : public QDialog {
+   Q_OBJECT
 public:
-    explicit ExportAnglesDialog(QWidget *parent = 0);
-    ~ExportAnglesDialog();
-
+   ExportAnglesDialog(
+         std::vector<const char *> &openProjects,
+         QWidget *parent = 0
+   );
+   ~ExportAnglesDialog();
+private slots:
+   void onTakeNumberChanged(int index);
+   void onTakeOrientationChanged(int index);
 private:
-    Ui::ExportAnglesDialog *ui;
+   class TakeInfoFrame : public QFrame {
+   public:
+      TakeInfoFrame(const char *openTakeName, QWidget *parent = 0);
+      QLabel    takeNameLabel;
+      QComboBox takeNumberCombo,
+                takeOrientationCombo;
+   };
+
+   static const char *PREVIOUS_INDEX_PROPERTY;
+   static const char *IS_RIGHT_ORIENTATION_PROPERTY;
+
+   Ui::ExportAnglesDialog *ui;
+   std::map<int, QComboBox*> leftTakesIndexMap,
+                             rightTakesIndexMap;
 };
 
 
