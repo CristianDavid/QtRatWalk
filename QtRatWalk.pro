@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     RatWalkGui/Plotter.cpp \
     RatWalkGui/MdiMainWindow.cpp \
     RatWalkGui/AnglePlotter.cpp \
-    RatWalkCore/StepRegister.cpp
+    RatWalkCore/StepRegister.cpp \
+    RatWalkGui/ExportAnglesDialog.cpp
 
 HEADERS  += \
     RatWalkCore/Points.h \
@@ -38,11 +39,13 @@ HEADERS  += \
     RatWalkGui/Plotter.h \
     RatWalkGui/MdiMainWindow.h \
     RatWalkGui/AnglePlotter.h \
-    RatWalkCore/StepRegister.h
+    RatWalkCore/StepRegister.h \
+    RatWalkGui/ExportAnglesDialog.h
 
 FORMS    += RatWalkGui/MainWindow.ui \
     RatWalkGui/MdiMainWindow.ui \
-    RatWalkGui/AnglePlotter.ui
+    RatWalkGui/AnglePlotter.ui \
+    RatWalkGui/ExportAnglesDialog.ui
 
 LIBS     += `pkg-config --libs opencv`
 
