@@ -72,7 +72,11 @@ const std::vector<std::string> &RatFile::getVideoNames() {
 }
 
 int RatFile::numberOfVideos() {
-   return (int)videoFilenames.size();
+    return (int)videoFilenames.size();
+}
+
+std::string RatFile::getStepRegisterFilename() {
+    return getProjectPath() + QDir::separator().toLatin1() + "StepRegister.csv";
 }
 
 } // namespace RatWalkCore
