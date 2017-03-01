@@ -2,12 +2,15 @@
 #define RATWALKGUI_MDIMAINWINDOW_H
 
 #include <array>
+#include <memory>
+#include <vector>
 
 #include <QMainWindow>
+#include <QStatusBar>
 
 #include "RatWalkCore/Tracker.h"
-#include "RatWalkGui/ImageViewer.h"
 #include "RatWalkGui/AnglePlotter.h"
+#include "RatWalkGui/ImageViewer.h"
 
 namespace RatWalkGui {
 
@@ -72,17 +75,24 @@ private slots:
    void on_btnEreaseStep_clicked();
 
 private:
+   typedef std::shared_ptr<RatWalkCore::Tracker> ProjectPtr;
+   typedef std::vector<ProjectPtr> ProjectVector;
+
    void onFrameNumberChanged();
    void updateStepInfo();
    void loadSteps();
+   void setCurrentProject(int projectIdx);
+   ProjectPtr getCurrentProject();
 
    Ui::MdiMainWindow *ui;
-   RatWalkCore::Tracker *ratWalkTracker;
+   ProjectVector projects;
+   int currentProjectIdx;
    ImageViewer *zoomedRegionWindow;
    QPoint imageViewerClickedPos;
    int grabbedPointId;
    int stepBegin = -1;
    std::array<RatWalkGui::AnglePlotter*, 5> anglePlotters;
+   QStatusBar *videoStatusBar;
 };
 
 

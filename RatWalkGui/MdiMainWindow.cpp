@@ -10,6 +10,8 @@
 #include <QSize>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QStatusBar>
+#include <QSizePolicy>
 #include <QAction>
 #include <QVariant>
 #include <QString>
@@ -25,12 +27,14 @@ namespace RatWalkGui {
 MdiMainWindow::MdiMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MdiMainWindow),
-    ratWalkTracker(nullptr),
+    currentProjectIdx(-1),
     zoomedRegionWindow(new ImageViewer),
     imageViewerClickedPos(),
     grabbedPointId(-1) {
     ui->setupUi(this);
-
+    videoStatusBar = new QStatusBar;
+    videoStatusBar->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Maximum);
+    ui->statusBarLayout->addWidget(videoStatusBar);
     ui->mdiArea->addSubWindow(zoomedRegionWindow);
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
@@ -72,17 +76,16 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
 
 MdiMainWindow::~MdiMainWindow() {
     delete ui;
-    delete ratWalkTracker;
     delete zoomedRegionWindow;
 }
 
 void MdiMainWindow::reloadFrame() {
     cv::Mat mat  = ui->checkBoxMostrarEsqueleto->checkState() == Qt::Checked?
-                       ratWalkTracker->getFrameWithSkeleton() :
-                       ratWalkTracker->getFrameWithRectangle();
+                       getCurrentProject()->getFrameWithSkeleton() :
+                       getCurrentProject()->getFrameWithRectangle();
     QImage frame = cvMat2QtImage(mat);
     ui->pnlFrame->setImage(frame);
-    RatWalkCore::Video  *videos = ratWalkTracker->getVideos();
+    RatWalkCore::Video  *videos = getCurrentProject()->getVideos();
     for (AnglePlotter *anglePlotter : anglePlotters) {
         anglePlotter->getPlotter()->clearPoints();
     }
@@ -103,7 +106,7 @@ void MdiMainWindow::reloadFrame() {
 }
 
 void MdiMainWindow::showZoomedRegion(QPoint point, int frameWidth, int frameHeight) {
-    auto image = ratWalkTracker->getZoomedRegion(point.x(), point.y(), frameWidth, frameHeight);
+    auto image = getCurrentProject()->getZoomedRegion(point.x(), point.y(), frameWidth, frameHeight);
     QImage frame = cvMat2QtImage(image);
     zoomedRegionWindow->setImage(frame);
     zoomedRegionWindow->resize(image.cols/2, image.rows/2);
@@ -116,7 +119,7 @@ void MdiMainWindow::mousePressEventOnPnlFrame(QMouseEvent *event) {
    QRect geometry(QPoint(0, 0), ui->pnlFrame->size());
    if (event->button() == Qt::LeftButton && geometry.contains(event->pos())) {
       imageViewerClickedPos = event->pos();
-      grabbedPointId = ratWalkTracker->getClosestPointID(
+      grabbedPointId = getCurrentProject()->getClosestPointID(
                             imageViewerClickedPos.x(),
                             imageViewerClickedPos.y(),
                             ui->pnlFrame->width(),
@@ -144,7 +147,7 @@ void MdiMainWindow::mouseReleaseEventOnPnlFrame(QMouseEvent *event) {
           if (point == imageViewerClickedPos) {
              int x = point.x(),
                  y = point.y();
-             ratWalkTracker->addPointOnCurrentFrame(x, y, frameWidth, frameHeight);
+             getCurrentProject()->addPointOnCurrentFrame(x, y, frameWidth, frameHeight);
              reloadFrame();
              showZoomedRegion(point, frameWidth, frameHeight);
           }
@@ -162,7 +165,7 @@ void MdiMainWindow::mouseMoveEventOnPnlFrame(QMouseEvent *event) {
        int    frameWidth  = ui->pnlFrame->width();
        int    frameHeight = ui->pnlFrame->height();
        if (grabbedPointId != -1) {
-          ratWalkTracker->setPointOnCurrentFrame(
+          getCurrentProject()->setPointOnCurrentFrame(
                             grabbedPointId,
                             point.x(),
                             point.y(),
@@ -185,7 +188,7 @@ void MdiMainWindow::mouseMoveEventOnPnlFrame(QMouseEvent *event) {
 }
 
 bool MdiMainWindow::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == ui->pnlFrame && ratWalkTracker != nullptr) {
+    if (watched == ui->pnlFrame && getCurrentProject() != nullptr) {
         switch (event->type()) {
             case QEvent::MouseButtonPress:
                 mousePressEventOnPnlFrame((QMouseEvent*)event);
@@ -216,28 +219,23 @@ void RatWalkGui::MdiMainWindow::onActionsShowSubWindowTriggered() {
 void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    using RatWalkCore::Tracker;
    using RatWalkCore::Video;
-   int numberOfFrames;
-   QString fileName = QFileDialog::getOpenFileName(this, "Open videos",
-                             QString(),
-                            "RatWalk Files (*.rat);;Other Files (*)");
-   if (fileName.isNull()) {
-      return;
-   }
-   on_actionClose_triggered();
-   ui->actionClose->setEnabled(true);
-   ui->actionSave->setEnabled(true);
-   ratWalkTracker = new Tracker(fileName.toStdString().c_str());
-   numberOfFrames = ratWalkTracker->getCurrentVideoAnalyzed().NumberOfFrames;
-   ui->ratWalkFrame->setEnabled(true);
-   ui->horizontalSlider->setMaximum(numberOfFrames-1);
-   ui->spinBoxCambiarFrame->setMinimum(0);
-   ui->spinBoxCambiarFrame->setMaximum(numberOfFrames-1);
-   onFrameNumberChanged();
+   QString fileName = QFileDialog::getOpenFileName(
+      this,
+      "Open videos",
+      "",
+      "RatWalk Files (*.rat);;Other Files (*)"
+   );
+   if (fileName.isNull()) return;
+
+   projects.push_back(ProjectPtr(
+      new Tracker(fileName.toStdString().c_str())
+   ));
+   setCurrentProject(projects.size() - 1);
 
    QFileInfo fileInfo(fileName);
    QStringList projectName(fileInfo.fileName());
    QTreeWidgetItem *projectRootItem = new QTreeWidgetItem(projectName);
-   for (const std::string &videoName : ratWalkTracker->getVideoNames()) {
+   for (const std::string &videoName : getCurrentProject()->getVideoNames()) {
       QString str = QString::fromStdString(videoName);
       QFileInfo fileInfo(str);
       QStringList fileName(fileInfo.fileName());
@@ -246,7 +244,7 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    }
    ui->twProjecto->addTopLevelItem(projectRootItem);
 
-   Video *videos = ratWalkTracker->getVideos();
+   Video *videos = getCurrentProject()->getVideos();
 
    std::vector<int> framesPerVideo;
    for (int i = 0; i < 3; i++) {
@@ -260,36 +258,31 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
 }
 
 void RatWalkGui::MdiMainWindow::on_actionSave_triggered() {
-   ratWalkTracker->guardar();
+   getCurrentProject()->guardar();
 }
 
 void RatWalkGui::MdiMainWindow::on_actionClose_triggered() {
-   if (ratWalkTracker != nullptr) {
-      ratWalkTracker->guardar();
-      delete ratWalkTracker;
-      ratWalkTracker = nullptr;
-   }
-   ui->twProjecto->clear();
-   ui->pnlFrame->setImage(QImage());
-   ui->actionClose->setEnabled(false);
-   ui->actionSave->setEnabled(false);
+   getCurrentProject()->guardar();
+   projects.erase(projects.begin() + currentProjectIdx);
+   ui->twProjecto->takeTopLevelItem(currentProjectIdx);
+   setCurrentProject(projects.size()-1);
 }
 
 void RatWalkGui::MdiMainWindow::on_btnNext_clicked() {
-   ratWalkTracker->nextFrame();
-   ratWalkTracker->guardar();
+   getCurrentProject()->nextFrame();
+   getCurrentProject()->guardar();
    onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_btnPrev_clicked() {
-   ratWalkTracker->prevFrame();
+   getCurrentProject()->prevFrame();
    onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_btnTraerEsqueleto_clicked() {
-   ratWalkTracker->traeEsqueleto();
+   getCurrentProject()->traeEsqueleto();
    reloadFrame();
 }
 
@@ -298,41 +291,50 @@ void RatWalkGui::MdiMainWindow::on_checkBoxMostrarEsqueleto_stateChanged(int sta
 }
 
 void RatWalkGui::MdiMainWindow::on_horizontalSlider_valueChanged(int value) {
-   ratWalkTracker->setFrame(value);
+   getCurrentProject()->setFrame(value);
    onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_spinBoxCambiarFrame_valueChanged(int value) {
-   ratWalkTracker->setFrame(value);
+   getCurrentProject()->setFrame(value);
    onFrameNumberChanged();
    reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::on_twProjecto_doubleClicked(const QModelIndex &index) {
+   int currentProject;
+   int currentVideo;
    if (index.parent().isValid()) {
-      stepBegin = -1;
-      ratWalkTracker->setCurrentVideo(index.row());
-      onFrameNumberChanged();
-      reloadFrame();
+      currentProject = index.parent().row();
+      currentVideo   = index.row();
+   } else {
+      currentProject = index.row();
+      currentVideo   = 0;
    }
+   stepBegin = -1;
+   setCurrentProject(currentProject);
+   getCurrentProject()->setCurrentVideo(currentVideo);
+   onFrameNumberChanged();
+   reloadFrame();
 }
 
 int RatWalkGui::MdiMainWindow::pointToGrabId(QPoint pos, double radius) {
-   if (ratWalkTracker == nullptr) return -1;
+   ProjectPtr currentProject = getCurrentProject();
+   if (currentProject == nullptr) return -1;
    int w = ui->pnlFrame->width(),
        h = ui->pnlFrame->height();
-   return ratWalkTracker->getClosestPointID(pos.x(), pos.y(), w, h, radius);
+   return currentProject->getClosestPointID(pos.x(), pos.y(), w, h, radius);
 }
 
 void RatWalkGui::MdiMainWindow::on_actionDelete_point_triggered() {
-    ratWalkTracker->deletePointOnCurrentFrame(ui->actionDelete_point->data().toInt());
+    getCurrentProject()->deletePointOnCurrentFrame(ui->actionDelete_point->data().toInt());
     reloadFrame();
 }
 
 void RatWalkGui::MdiMainWindow::onFrameNumberChanged() {
     bool signalsEnabled;
-    int currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    int currentFrame = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
     signalsEnabled = ui->horizontalSlider->blockSignals(true);
     ui->horizontalSlider->setValue(currentFrame);
     ui->horizontalSlider->blockSignals(signalsEnabled);
@@ -343,13 +345,13 @@ void RatWalkGui::MdiMainWindow::onFrameNumberChanged() {
     updateStepInfo();
 }
 void RatWalkGui::MdiMainWindow::updateStepInfo() {
-    int currentFrame = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
-    RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
+    int currentFrame = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
+    RatWalkCore::StepRegister &stepRegister = getCurrentProject()->getCurrentStepRegister();
     if (stepBegin == -1) {
         ui->btnDiscardStep->setEnabled(false);
         ui->btnDiscardStep->setVisible(false);
         if (stepRegister.posNotOverlapping(currentFrame)) {
-            ui->statusbar->clearMessage();
+            videoStatusBar->clearMessage();
             ui->btnStartStep->setVisible(true);
             ui->btnStartStep->setEnabled(true);
             ui->btnFinishStep->setVisible(true);
@@ -358,7 +360,7 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
             ui->btnEreaseStep->setEnabled(false);
         } else {
             auto step = stepRegister.getSurroundingStep(currentFrame);
-            ui->statusbar->showMessage(
+            videoStatusBar->showMessage(
                 "Inicio de paso: " + QString::number(step.first) +
                 ", Fin de paso: "  + QString::number(step.second)
             );
@@ -374,7 +376,7 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
         ui->btnDiscardStep->setVisible(true);
         ui->btnEreaseStep->setVisible(false);
         ui->btnEreaseStep->setEnabled(false);
-        ui->statusbar->showMessage(
+        videoStatusBar->showMessage(
             "Paso iniciado en frame: " + QString::number(stepBegin)
         );
         ui->btnStartStep->setVisible(false);
@@ -386,8 +388,8 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
             } else {
                 auto overlap = stepRegister.getSurroundingStep(stepBegin, currentFrame);
                 ui->btnFinishStep->setEnabled(false);
-                ui->statusbar->showMessage(
-                    ui->statusbar->currentMessage() +
+                videoStatusBar->showMessage(
+                    videoStatusBar->currentMessage() +
                     ", se traslapa con [" + QString::number(overlap.first) +
                     "," + QString::number(overlap.second) + "]"
                 );
@@ -400,7 +402,7 @@ void RatWalkGui::MdiMainWindow::updateStepInfo() {
 
 void RatWalkGui::MdiMainWindow::loadSteps() {
     using RatWalkCore::StepRegister;
-    StepRegister *registers = ratWalkTracker->getStepRegisters();
+    StepRegister *registers = getCurrentProject()->getStepRegisters();
     for (int i = 0; i < 3; i++) {
         std::vector<StepRegister::Step> steps = registers[i].getSteps();
         for (auto step : steps) {
@@ -411,17 +413,45 @@ void RatWalkGui::MdiMainWindow::loadSteps() {
     }
 }
 
+void RatWalkGui::MdiMainWindow::setCurrentProject(int projectIdx) {
+    currentProjectIdx = projectIdx;
+    if (currentProjectIdx == -1) {
+        ui->pnlFrame->setImage(QImage());
+        zoomedRegionWindow->setImage(QImage());
+        ui->ratWalkFrame->setEnabled(false);
+        ui->actionClose->setEnabled(false);
+        ui->actionSave->setEnabled(false);
+    } else {
+        int numberOfFrames = getCurrentProject()->getCurrentVideoAnalyzed().NumberOfFrames;
+        ui->ratWalkFrame->setEnabled(true);
+        ui->horizontalSlider->setMaximum(numberOfFrames-1);
+        ui->spinBoxCambiarFrame->setMinimum(0);
+        ui->spinBoxCambiarFrame->setMaximum(numberOfFrames-1);
+        ui->actionClose->setEnabled(true);
+        ui->actionSave->setEnabled(true);
+        onFrameNumberChanged();
+    }
+}
+
+RatWalkGui::MdiMainWindow::ProjectPtr RatWalkGui::MdiMainWindow::getCurrentProject() {
+    if (currentProjectIdx != -1) {
+        return projects[currentProjectIdx];
+    } else {
+        return ProjectPtr();
+    }
+}
+
 
 void RatWalkGui::MdiMainWindow::on_btnStartStep_clicked() {
-    stepBegin = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    stepBegin = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
     updateStepInfo();
 }
 
 void RatWalkGui::MdiMainWindow::on_btnFinishStep_clicked() {
-    RatWalkCore::StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
-    int stepEnd = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    RatWalkCore::StepRegister &stepRegister = getCurrentProject()->getCurrentStepRegister();
+    int stepEnd = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
     stepRegister.addStep(stepBegin, stepEnd);
-    int videoIdx = ratWalkTracker->getCurrentVideoIndex();
+    int videoIdx = getCurrentProject()->getCurrentVideoIndex();
     for (AnglePlotter *plotter : anglePlotters) {
         plotter->addStep(videoIdx, stepBegin, stepEnd);
     }
@@ -437,8 +467,8 @@ void RatWalkGui::MdiMainWindow::on_btnDiscardStep_clicked() {
 void RatWalkGui::MdiMainWindow::on_btnEreaseStep_clicked() {
     using RatWalkCore::StepRegister;
 
-    StepRegister &stepRegister = ratWalkTracker->getCurrentStepRegister();
-    int pos = ratWalkTracker->getCurrentVideoAnalyzed().CurrentFrame;
+    StepRegister &stepRegister = getCurrentProject()->getCurrentStepRegister();
+    int pos = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
     stepRegister.ereaseSurroundingStep(pos);
     for (AnglePlotter *plotter : anglePlotters) {
         plotter->clearSteps();

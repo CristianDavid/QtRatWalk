@@ -107,6 +107,8 @@ class RatFile {
     * \return Entero con la cantidad de vídeos que conforman el proyecto.
     */
    int numberOfVideos();
+
+   std::string getStepRegisterFilename();
  private:
    QFileInfo projectFileInfo;
    std::vector<std::string> videoFilenames;

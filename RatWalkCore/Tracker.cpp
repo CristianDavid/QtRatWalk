@@ -45,7 +45,7 @@ Tracker::Tracker(const char *fileName) :
       }
    }
 
-   loadStepRegister("StepRegister.csv");
+   loadStepRegister(ratFile.getStepRegisterFilename().c_str());
 
    ////////////
    //PERFORM THE CORRECTION OF THE VIDEOS
@@ -410,7 +410,7 @@ void Tracker::guardar() {
    }
    ofs.close();
    saveCorrectedFile();
-   saveStepRegister("StepRegister.csv");
+   saveStepRegister(ratFile.getStepRegisterFilename().c_str());
 }
 
 void Tracker::traeEsqueleto() {
