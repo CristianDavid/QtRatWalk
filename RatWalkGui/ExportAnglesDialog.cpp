@@ -77,6 +77,7 @@ void ExportAnglesDialog::onTakeOrientationChanged(int index) {
    auto &newMap  = isRightOrientation? rightTakesIndexMap : leftTakesIndexMap;
    auto &prevMap = isRightOrientation? leftTakesIndexMap : rightTakesIndexMap;
    int newIndex = newMap.size();
+   int prevIndex = parentFrame->takeNumberCombo.property(PREVIOUS_INDEX_PROPERTY).toInt();
    newMap[newIndex] = &parentFrame->takeNumberCombo;
    parentFrame->takeNumberCombo.setProperty(
             PREVIOUS_INDEX_PROPERTY,
@@ -86,10 +87,41 @@ void ExportAnglesDialog::onTakeOrientationChanged(int index) {
             IS_RIGHT_ORIENTATION_PROPERTY,
             isRightOrientation
    );
+   // agregar el índice a todos los combos de la misma orientación
    parentFrame->takeNumberCombo.blockSignals(true);
-   parentFrame->takeNumberCombo.clear(); // todo pensar en como actualizar todos
+   parentFrame->takeNumberCombo.clear();
+   QStringList nuevosIndices;
+   for (int i = 1; i <= newIndex; i++) {
+      nuevosIndices << QString::number(i);
+   }
+   parentFrame->takeNumberCombo.addItems(nuevosIndices);
+   parentFrame->takeNumberCombo.blockSignals(false);
+   for (int i = 0; i <= newIndex; i++) {
+      QComboBox &combo = *newMap[i];
+      combo.blockSignals(true);
+      combo.addItem(QString::number(newIndex+1));
+      combo.blockSignals(false);
+   }
+   parentFrame->takeNumberCombo.blockSignals(true);
    parentFrame->takeNumberCombo.setCurrentIndex(newIndex);
    parentFrame->takeNumberCombo.blockSignals(false);
+   // remover el viejo indice de los combos de la vieja orientación
+   int prevMapSize = prevMap.size();
+   for (int i = 0; i < prevMapSize; i++) {
+      if (i == prevMapSize - 1) {
+         prevMap.erase(i);
+      } else {
+         if (i >= prevIndex) {
+            prevMap[i] = prevMap[i+1];
+         }
+         QComboBox &combo = *prevMap[i];
+         combo.blockSignals(true);
+         combo.setProperty(PREVIOUS_INDEX_PROPERTY, i);
+         combo.setCurrentIndex(i);
+         combo.removeItem(prevMapSize-1);
+         combo.blockSignals(false);
+      }
+   }
 }
 
 ExportAnglesDialog::TakeInfoFrame::TakeInfoFrame(
