@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <utility>
 #include <vector>
 #include <QComboBox>
 #include <QDialog>
@@ -24,6 +25,7 @@ public:
          QWidget *parent = 0
    );
    ~ExportAnglesDialog();
+   std::pair<std::vector<int>, std::vector<int>> getExportOrder();
 private slots:
    void onTakeNumberChanged(int index);
    void onTakeOrientationChanged(int index);
@@ -38,6 +40,7 @@ private:
 
    static const char *PREVIOUS_INDEX_PROPERTY;
    static const char *IS_RIGHT_ORIENTATION_PROPERTY;
+   static const char *ORIGINAL_INDEX_PROPERTY;
 
    Ui::ExportAnglesDialog *ui;
    std::map<int, QComboBox*> leftTakesIndexMap,

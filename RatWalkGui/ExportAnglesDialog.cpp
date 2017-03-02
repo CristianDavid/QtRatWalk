@@ -13,6 +13,7 @@ namespace RatWalkGui {
 
 const char *ExportAnglesDialog::PREVIOUS_INDEX_PROPERTY = "previousIndex";
 const char *ExportAnglesDialog::IS_RIGHT_ORIENTATION_PROPERTY = "isRightOrientation";
+const char *ExportAnglesDialog::ORIGINAL_INDEX_PROPERTY = "originalIndex";
 
 ExportAnglesDialog::ExportAnglesDialog(
       std::vector<const char *> &openProjects,
@@ -34,6 +35,7 @@ ExportAnglesDialog::ExportAnglesDialog(
       layout->addWidget(frame);
       frame->takeNumberCombo.addItems(takeNumberValues);
       frame->takeNumberCombo.setCurrentIndex(i);
+      frame->takeNumberCombo.setProperty(ORIGINAL_INDEX_PROPERTY, i);
       frame->takeNumberCombo.setProperty(PREVIOUS_INDEX_PROPERTY, i);
       frame->takeNumberCombo.setProperty(IS_RIGHT_ORIENTATION_PROPERTY, true);
       rightTakesIndexMap[i] = &frame->takeNumberCombo;
@@ -50,6 +52,20 @@ ExportAnglesDialog::ExportAnglesDialog(
 
 ExportAnglesDialog::~ExportAnglesDialog() {
    delete ui;
+}
+
+std::pair<std::vector<int>, std::vector<int> > ExportAnglesDialog::getExportOrder() {
+   std::vector<int> leftTakes,
+                    rightTakes;
+   for (int i = 0; i < (int)leftTakesIndexMap.size(); i++) {
+      QComboBox &combo = *leftTakesIndexMap[i];
+      leftTakes.push_back(combo.property(ORIGINAL_INDEX_PROPERTY).toInt());
+   }
+   for (int i = 0; i < (int)rightTakesIndexMap.size(); i++) {
+      QComboBox &combo = *rightTakesIndexMap[i];
+      rightTakes.push_back(combo.property(ORIGINAL_INDEX_PROPERTY).toInt());
+   }
+   return std::make_pair(leftTakes, rightTakes);
 }
 
 void ExportAnglesDialog::onTakeNumberChanged(int index) {
