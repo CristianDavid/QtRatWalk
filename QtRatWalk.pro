@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = QtRatWalk
 TEMPLATE = app
 
+include(xlsx/qtxlsx.pri)
+
 SOURCES += main.cpp \
     RatWalkGui/MainWindow.cpp \
     RatWalkGui/ImageViewer.cpp \
