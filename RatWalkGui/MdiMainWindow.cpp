@@ -23,6 +23,7 @@
 #include "RatWalkGui/AnglePlotter.h"
 #include "RatWalkGui/cvMat2QtImage.h"
 #include "RatWalkGui/ExportAnglesDialog.h"
+#include "xlsxdocument.h"
 
 namespace RatWalkGui {
 
@@ -494,7 +495,52 @@ void RatWalkGui::MdiMainWindow::on_actionExport_angles_triggered() {
          openProjectsNames,
          this
    );
-   dialog->exec();
+   if (dialog->exec() == QDialog::Accepted) {
+      QXlsx::Document xlsx;
+      auto exportOrder = dialog->getExportOrder();
+      xlsx.deleteSheet("Sheet1");
+
+      auto ordersAndOrientations = {
+         std::make_pair(exportOrder.second, "der"),
+         std::make_pair(exportOrder.first, "izq")
+      };
+
+      int sheetNumber = 0;
+      for (auto &orderAndOrientation : ordersAndOrientations) {
+         std::vector<int> order  = orderAndOrientation.first;
+         QString orientation(orderAndOrientation.second);
+         for (int i = 0; i < (int)order.size(); i++) {
+            int projectNumber = order[i];
+            ProjectPtr project = projects[projectNumber];
+            RatWalkCore::StepRegister *stepRegisters = project->getStepRegisters();
+            RatWalkCore::Video *videos = project->getVideos();
+            for (int angle = 0; angle < 5; angle++) { //! todo magic number, this should be the number of angles
+               QString sheetName =
+                     "T" + QString::number(angle+1) +
+                     " v" + QString::number(i+1) + orientation;
+               xlsx.insertSheet(sheetNumber, sheetName);
+               xlsx.selectSheet(sheetName);
+               for (int k = 0, column = 1; k < 3; k++) { //! todo again a magic number, this should be the number of videos in the project
+                  RatWalkCore::StepRegister &stepRegister = stepRegisters[k];
+                  RatWalkCore::Video &video = videos[k];
+                  auto stepVector = stepRegister.getSteps();
+                  for (int stepNumber = 0; stepNumber < (int)stepVector.size(); stepNumber++, column++) {
+                     auto step = stepVector[stepNumber];
+                     for (int row = 1, frameNumber = step.first; frameNumber <= step.second; frameNumber++, row++) {
+                        xlsx.write(row, column,
+                           video.FrameProperties[frameNumber].TrackedPointsInFrame[angle].ThetaCorrected
+                        );
+                     }
+                  }
+               }
+               sheetNumber++;
+            }
+         }
+      }
+
+      xlsx.saveAs("Pasos.xlsx");
+   }
+
    for (auto cstr : openProjectsNames) {
       delete[] cstr;
    }
