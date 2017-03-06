@@ -1,6 +1,14 @@
 #include "MdiMainWindow.h"
 #include "ui_MdiMainWindow.h"
 
+
+#include <cstring>
+#include <atomic>
+#include <string>
+#include <thread>
+
+#include <QApplication>
+#include <QCoreApplication>
 #include <QMdiSubWindow>
 #include <QFileInfo>
 #include <QDebug>
@@ -15,9 +23,6 @@
 #include <QAction>
 #include <QVariant>
 #include <QString>
-
-#include <cstring>
-#include <string>
 
 #include "RatWalkGui/ImageViewer.h"
 #include "RatWalkGui/AnglePlotter.h"
@@ -231,9 +236,21 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    );
    if (fileName.isNull()) return;
 
-   projects.push_back(ProjectPtr(
-      new Tracker(fileName.toStdString().c_str())
-   ));
+   std::atomic<RatWalkCore::Tracker *> newProjectPtr(nullptr);
+   std::thread openProject([&newProjectPtr, &fileName] {
+      newProjectPtr = new Tracker(fileName.toStdString().c_str());
+   });
+   QApplication::setOverrideCursor(Qt::BusyCursor);
+   setEnabled(false);
+   ui->statusbar->showMessage("Abriendo proyecto");
+   while (newProjectPtr == nullptr) {
+      QCoreApplication::processEvents();
+   }
+   openProject.join();
+   ui->statusbar->showMessage("Proyecto abierto", 10000);
+   QApplication::restoreOverrideCursor();
+   setEnabled(true);
+   projects.push_back(ProjectPtr(newProjectPtr.load()));
    setCurrentProject(projects.size() - 1);
 
    QFileInfo fileInfo(fileName);
