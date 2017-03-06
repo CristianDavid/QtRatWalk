@@ -42,21 +42,22 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
 
-    for (int i = 0; i < anglePlotters.size(); i++) {
+    for (int i = 0; i < getAnglePlotters().size(); i++) {
         QAction      *showAngleAction;
         AnglePlotter *anglePlotterPtr = new AnglePlotter;
         QVariant      angleActionData;
         std::string   angleName = "T" + std::to_string(i+1);
         QString       nombreAccion  = QString::fromStdString("Mostrar " + angleName);
         anglePlotterPtr->setWindowTitle(angleName.c_str());
-        ui->mdiArea->addSubWindow(anglePlotterPtr);
+        anglePlotterSubWindows[i].setWidget(anglePlotterPtr);
+        ui->mdiArea->addSubWindow(&anglePlotterSubWindows[i]);
         anglePlotterPtr->parentWidget()->hide();
         showAngleAction = ui->menuShow_angles->addAction(nombreAccion);
         angleActionData.setValue<QWidget*>(anglePlotterPtr);
         showAngleAction->setData(angleActionData);
         QObject::connect(showAngleAction, &QAction::triggered,
                          this,            &MdiMainWindow::onActionsShowSubWindowTriggered);
-        anglePlotters[i] = anglePlotterPtr;
+        getAnglePlotters()[i] = anglePlotterPtr;
     }
 
     for (QMdiSubWindow *sub : ui->mdiArea->subWindowList()) {
@@ -89,7 +90,7 @@ void MdiMainWindow::reloadFrame() {
     QImage frame = cvMat2QtImage(mat);
     ui->pnlFrame->setImage(frame);
     RatWalkCore::Video  *videos = getCurrentProject()->getVideos();
-    for (AnglePlotter *anglePlotter : anglePlotters) {
+    for (AnglePlotter *anglePlotter : getAnglePlotters()) {
         anglePlotter->getPlotter()->clearPoints();
     }
     for (int i = 0, globalFrame = 0; i < 3; i++) {
@@ -99,9 +100,9 @@ void MdiMainWindow::reloadFrame() {
             for (int k = 0; k < frame.NumberOfPointsToTrack; k++) {
                 if (k < frame.NumberOfTRegisteredPoints) {
                     RatWalkCore::ControlPoint &point = frame.TrackedPointsInFrame[k];
-                    anglePlotters[k]->getPlotter()->addPoint(globalFrame, point.ThetaCorrected);
+                    getAnglePlotters()[k]->getPlotter()->addPoint(globalFrame, point.ThetaCorrected);
                 } else {
-                    anglePlotters[k]->getPlotter()->addPoint(globalFrame, -1);
+                    getAnglePlotters()[k]->getPlotter()->addPoint(globalFrame, -1);
                 }
             }
         }
@@ -253,7 +254,7 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    for (int i = 0; i < 3; i++) {
         framesPerVideo.push_back(videos[i].NumberOfFrames);
    }
-   for (AnglePlotter *anglePlotter : anglePlotters) {
+   for (AnglePlotter *anglePlotter : getAnglePlotters()) {
        anglePlotter->setFramesPerVideo(framesPerVideo);
    }
    loadSteps();
@@ -409,7 +410,7 @@ void RatWalkGui::MdiMainWindow::loadSteps() {
     for (int i = 0; i < 3; i++) {
         std::vector<StepRegister::Step> steps = registers[i].getSteps();
         for (auto step : steps) {
-            for (AnglePlotter *plotter : anglePlotters) {
+            for (AnglePlotter *plotter : getAnglePlotters()) {
                 plotter->addStep(i, step.first, step.second);
             }
         }
@@ -444,6 +445,10 @@ RatWalkGui::MdiMainWindow::ProjectPtr RatWalkGui::MdiMainWindow::getCurrentProje
     }
 }
 
+RatWalkGui::MdiMainWindow::AnglePlotterArray &RatWalkGui::MdiMainWindow::getAnglePlotters() {
+   return anglePlotters;
+}
+
 
 void RatWalkGui::MdiMainWindow::on_btnStartStep_clicked() {
     stepBegin = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
@@ -455,7 +460,7 @@ void RatWalkGui::MdiMainWindow::on_btnFinishStep_clicked() {
     int stepEnd = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
     stepRegister.addStep(stepBegin, stepEnd);
     int videoIdx = getCurrentProject()->getCurrentVideoIndex();
-    for (AnglePlotter *plotter : anglePlotters) {
+    for (AnglePlotter *plotter : getAnglePlotters()) {
         plotter->addStep(videoIdx, stepBegin, stepEnd);
     }
     stepBegin = -1;
@@ -473,7 +478,7 @@ void RatWalkGui::MdiMainWindow::on_btnEreaseStep_clicked() {
     StepRegister &stepRegister = getCurrentProject()->getCurrentStepRegister();
     int pos = getCurrentProject()->getCurrentVideoAnalyzed().CurrentFrame;
     stepRegister.ereaseSurroundingStep(pos);
-    for (AnglePlotter *plotter : anglePlotters) {
+    for (AnglePlotter *plotter : getAnglePlotters()) {
         plotter->clearSteps();
     }
 
@@ -542,6 +547,6 @@ void RatWalkGui::MdiMainWindow::on_actionExport_angles_triggered() {
    }
 
    for (auto cstr : openProjectsNames) {
-      delete[] cstr;
+      delete[] cstr; //! todo change RatWalkCore::RatFile to return const char *
    }
 }

@@ -4,10 +4,9 @@
 #include <array>
 #include <memory>
 #include <vector>
-
 #include <QMainWindow>
+#include <QMdiSubWindow>
 #include <QStatusBar>
-
 #include "RatWalkCore/Tracker.h"
 #include "RatWalkGui/AnglePlotter.h"
 #include "RatWalkGui/ImageViewer.h"
@@ -79,12 +78,14 @@ private slots:
 private:
    typedef std::shared_ptr<RatWalkCore::Tracker> ProjectPtr;
    typedef std::vector<ProjectPtr> ProjectVector;
+   typedef std::array<AnglePlotter*, 5> AnglePlotterArray; //! todo tamaño del arreglo es un número mágico
 
    void onFrameNumberChanged();
    void updateStepInfo();
    void loadSteps();
    void setCurrentProject(int projectIdx);
    ProjectPtr getCurrentProject();
+   AnglePlotterArray &getAnglePlotters();
 
    Ui::MdiMainWindow *ui;
    ProjectVector projects;
@@ -93,7 +94,8 @@ private:
    QPoint imageViewerClickedPos;
    int grabbedPointId;
    int stepBegin = -1;
-   std::array<RatWalkGui::AnglePlotter*, 5> anglePlotters;
+   AnglePlotterArray anglePlotters;
+   std::array<QMdiSubWindow, 5> anglePlotterSubWindows; //! todo número mágico
    QStatusBar *videoStatusBar;
 };
 
