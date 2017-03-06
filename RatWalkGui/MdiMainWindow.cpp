@@ -257,7 +257,10 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    anglePlotters.push_back(AnglePlotterArray());
    AnglePlotterArray &newAnglePlotters = getAnglePlotters();
    for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+      QString title = "T" + QString::number(i+1) + " [" +
+                      projectName.front() + "]";
       newAnglePlotters[i] = new AnglePlotter;
+      newAnglePlotters[i]->setWindowTitle(title);
       anglePlotterSubWindows[i].setWidget(newAnglePlotters[i]);
    }
    for (AnglePlotter *anglePlotter : getAnglePlotters()) {
