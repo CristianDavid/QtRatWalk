@@ -42,11 +42,12 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
 
-    for (int i = 0; i < getAnglePlotters().size(); i++) {
+    anglePlotters.push_back(AnglePlotterArray());
+    for (int i = 0; i < (int)getAnglePlotters().size(); i++) {
         QAction      *showAngleAction;
         AnglePlotter *anglePlotterPtr = new AnglePlotter;
         QVariant      angleActionData;
-        std::string   angleName = "T" + std::to_string(i+1);
+        std::string   angleName = "T" + std::to_string(i+1); //! todo change title according to current project
         QString       nombreAccion  = QString::fromStdString("Mostrar " + angleName);
         anglePlotterPtr->setWindowTitle(angleName.c_str());
         anglePlotterSubWindows[i].setWidget(anglePlotterPtr);
@@ -251,8 +252,14 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    Video *videos = getCurrentProject()->getVideos();
 
    std::vector<int> framesPerVideo;
-   for (int i = 0; i < 3; i++) {
+   for (int i = 0; i < 3; i++) { //! todo magic number here
         framesPerVideo.push_back(videos[i].NumberOfFrames);
+   }
+   anglePlotters.push_back(AnglePlotterArray());
+   AnglePlotterArray &newAnglePlotters = getAnglePlotters();
+   for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+      newAnglePlotters[i] = new AnglePlotter;
+      anglePlotterSubWindows[i].setWidget(newAnglePlotters[i]);
    }
    for (AnglePlotter *anglePlotter : getAnglePlotters()) {
        anglePlotter->setFramesPerVideo(framesPerVideo);
@@ -270,6 +277,10 @@ void RatWalkGui::MdiMainWindow::on_actionClose_triggered() {
    projects.erase(projects.begin() + currentProjectIdx);
    ui->twProjecto->takeTopLevelItem(currentProjectIdx);
    setCurrentProject(projects.size()-1);
+   for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+      anglePlotterSubWindows[i].setWidget(getAnglePlotters()[i]);
+   }
+   anglePlotters.pop_back();
 }
 
 void RatWalkGui::MdiMainWindow::on_btnNext_clicked() {
@@ -446,7 +457,7 @@ RatWalkGui::MdiMainWindow::ProjectPtr RatWalkGui::MdiMainWindow::getCurrentProje
 }
 
 RatWalkGui::MdiMainWindow::AnglePlotterArray &RatWalkGui::MdiMainWindow::getAnglePlotters() {
-   return anglePlotters;
+   return anglePlotters[currentProjectIdx+1];
 }
 
 

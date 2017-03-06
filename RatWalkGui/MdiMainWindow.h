@@ -94,7 +94,7 @@ private:
    QPoint imageViewerClickedPos;
    int grabbedPointId;
    int stepBegin = -1;
-   AnglePlotterArray anglePlotters;
+   std::vector<AnglePlotterArray> anglePlotters;
    std::array<QMdiSubWindow, 5> anglePlotterSubWindows; //! todo número mágico
    QStatusBar *videoStatusBar;
 };
