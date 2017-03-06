@@ -54,7 +54,7 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
         ui->mdiArea->addSubWindow(&anglePlotterSubWindows[i]);
         anglePlotterPtr->parentWidget()->hide();
         showAngleAction = ui->menuShow_angles->addAction(nombreAccion);
-        angleActionData.setValue<QWidget*>(anglePlotterPtr);
+        angleActionData.setValue<QMdiSubWindow*>(&anglePlotterSubWindows[i]);
         showAngleAction->setData(angleActionData);
         QObject::connect(showAngleAction, &QAction::triggered,
                          this,            &MdiMainWindow::onActionsShowSubWindowTriggered);
@@ -66,17 +66,16 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     }
 
     QVariant projectSubWindowData;
-    projectSubWindowData.setValue<QWidget*>(ui->projectSubWindow);
+    projectSubWindowData.setValue<QWidget*>(ui->projectSubWindow->parentWidget());
     ui->actionShow_projects->setData(projectSubWindowData);
     QObject::connect(ui->actionShow_projects, &QAction::triggered,
                      this, &MdiMainWindow::onActionsShowSubWindowTriggered);
 
     QVariant videoSubWindowData;
-    videoSubWindowData.setValue<QWidget*>(ui->videoSubWindow);
+    videoSubWindowData.setValue<QWidget*>(ui->videoSubWindow->parentWidget());
     ui->actionShow_video->setData(videoSubWindowData);
     QObject::connect(ui->actionShow_video, &QAction::triggered,
                      this, &MdiMainWindow::onActionsShowSubWindowTriggered);
-
 }
 
 MdiMainWindow::~MdiMainWindow() {
@@ -216,9 +215,9 @@ bool MdiMainWindow::eventFilter(QObject *watched, QEvent *event) {
 
 void RatWalkGui::MdiMainWindow::onActionsShowSubWindowTriggered() {
     QAction *senderAction    = static_cast<QAction*>(sender());
-    QWidget *subWindowWidget = senderAction->data().value<QWidget*>();
-    subWindowWidget->parentWidget()->show();
-    subWindowWidget->show();
+    QMdiSubWindow *subWindow = senderAction->data().value<QMdiSubWindow*>();
+    subWindow->show();
+    subWindow->widget()->show();
 }
 
 void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
@@ -329,6 +328,9 @@ void RatWalkGui::MdiMainWindow::on_twProjecto_doubleClicked(const QModelIndex &i
    }
    stepBegin = -1;
    setCurrentProject(currentProject);
+   for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+      anglePlotterSubWindows[i].setWidget(getAnglePlotters()[i]);
+   }
    getCurrentProject()->setCurrentVideo(currentVideo);
    onFrameNumberChanged();
    reloadFrame();
