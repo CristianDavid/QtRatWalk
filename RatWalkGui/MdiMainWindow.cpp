@@ -329,7 +329,11 @@ void RatWalkGui::MdiMainWindow::on_twProjecto_doubleClicked(const QModelIndex &i
    stepBegin = -1;
    setCurrentProject(currentProject);
    for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
-      anglePlotterSubWindows[i].setWidget(getAnglePlotters()[i]);
+      AnglePlotter *anglePlotter = getAnglePlotters()[i];
+      QMdiSubWindow &subWindow   = anglePlotterSubWindows[i];
+      if (subWindow.widget() != anglePlotter) {
+         subWindow.setWidget(anglePlotter);
+      }
    }
    getCurrentProject()->setCurrentVideo(currentVideo);
    onFrameNumberChanged();
