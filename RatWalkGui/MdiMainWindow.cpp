@@ -580,7 +580,22 @@ void RatWalkGui::MdiMainWindow::on_actionExport_angles_triggered() {
          }
       }
 
-      xlsx.saveAs("Pasos.xlsx");
+      QString saveFilename = QFileDialog::getSaveFileName(
+         this,
+         "Exportar ángulos",
+          QString(),
+          "Excel (*.xlsx)"
+      );
+      if (!saveFilename.isNull()) {
+         if (!saveFilename.endsWith(".xlsx")) {
+            saveFilename += ".xlsx";
+         }
+         if(xlsx.saveAs(saveFilename)) {
+            ui->statusbar->showMessage("Ángulos exportados a " + saveFilename, 10000);
+         } else {
+            ui->statusbar->showMessage("No se pudo guardar " + saveFilename, 10000);
+         }
+      }
    }
 
    for (auto cstr : openProjectsNames) {
