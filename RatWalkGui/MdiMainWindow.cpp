@@ -602,3 +602,8 @@ void RatWalkGui::MdiMainWindow::on_actionExport_angles_triggered() {
       delete[] cstr; //! todo change RatWalkCore::RatFile to return const char *
    }
 }
+
+void RatWalkGui::MdiMainWindow::on_actionMostrar_zoom_triggered() {
+   zoomedRegionWindow->show();
+   zoomedRegionWindow->parentWidget()->show();
+}
