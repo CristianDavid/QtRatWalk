@@ -347,6 +347,7 @@
     </widget>
     <addaction name="actionShow_projects"/>
     <addaction name="actionShow_video"/>
+    <addaction name="actionMostrar_zoom"/>
     <addaction name="menuShow_angles"/>
    </widget>
    <addaction name="menuFile"/>
@@ -392,6 +393,11 @@
   <action name="actionExport_angles">
    <property name="text">
     <string>Exportar ángulos</string>
+   </property>
+  </action>
+  <action name="actionMostrar_zoom">
+   <property name="text">
+    <string>Mostrar zoom</string>
    </property>
   </action>
  </widget>

@@ -43,6 +43,7 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     videoStatusBar = new QStatusBar;
     videoStatusBar->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Maximum);
     ui->statusBarLayout->addWidget(videoStatusBar);
+    zoomedRegionWindow->setWindowTitle("zoom");
     ui->mdiArea->addSubWindow(zoomedRegionWindow);
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
@@ -115,13 +116,12 @@ void MdiMainWindow::reloadFrame() {
 }
 
 void MdiMainWindow::showZoomedRegion(QPoint point, int frameWidth, int frameHeight) {
-    auto image = getCurrentProject()->getZoomedRegion(point.x(), point.y(), frameWidth, frameHeight);
+    auto image = getCurrentProject()->getZoomedRegion(
+             point.x(), point.y(),
+             frameWidth, frameHeight
+         );
     QImage frame = cvMat2QtImage(image);
     zoomedRegionWindow->setImage(frame);
-    zoomedRegionWindow->resize(image.cols/2, image.rows/2);
-    if (!zoomedRegionWindow->isVisible())
-       zoomedRegionWindow->show();
-
 }
 
 void MdiMainWindow::mousePressEventOnPnlFrame(QMouseEvent *event) {
@@ -601,4 +601,9 @@ void RatWalkGui::MdiMainWindow::on_actionExport_angles_triggered() {
    for (auto cstr : openProjectsNames) {
       delete[] cstr; //! todo change RatWalkCore::RatFile to return const char *
    }
+}
+
+void RatWalkGui::MdiMainWindow::on_actionMostrar_zoom_triggered() {
+   zoomedRegionWindow->show();
+   zoomedRegionWindow->parentWidget()->show();
 }

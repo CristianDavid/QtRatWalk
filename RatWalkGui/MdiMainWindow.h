@@ -75,6 +75,8 @@ private slots:
 
    void on_actionExport_angles_triggered();
 
+   void on_actionMostrar_zoom_triggered();
+
 private:
    typedef std::shared_ptr<RatWalkCore::Tracker> ProjectPtr;
    typedef std::vector<ProjectPtr> ProjectVector;
