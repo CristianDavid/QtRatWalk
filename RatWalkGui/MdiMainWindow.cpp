@@ -43,6 +43,7 @@ MdiMainWindow::MdiMainWindow(QWidget *parent) :
     videoStatusBar = new QStatusBar;
     videoStatusBar->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Maximum);
     ui->statusBarLayout->addWidget(videoStatusBar);
+    zoomedRegionWindow->setWindowTitle("zoom");
     ui->mdiArea->addSubWindow(zoomedRegionWindow);
     ui->ratWalkFrame->setEnabled(false);
     ui->pnlFrame->installEventFilter(this);
