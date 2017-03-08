@@ -115,13 +115,12 @@ void MdiMainWindow::reloadFrame() {
 }
 
 void MdiMainWindow::showZoomedRegion(QPoint point, int frameWidth, int frameHeight) {
-    auto image = getCurrentProject()->getZoomedRegion(point.x(), point.y(), frameWidth, frameHeight);
+    auto image = getCurrentProject()->getZoomedRegion(
+             point.x(), point.y(),
+             frameWidth, frameHeight
+         );
     QImage frame = cvMat2QtImage(image);
     zoomedRegionWindow->setImage(frame);
-    zoomedRegionWindow->resize(image.cols/2, image.rows/2);
-    if (!zoomedRegionWindow->isVisible())
-       zoomedRegionWindow->show();
-
 }
 
 void MdiMainWindow::mousePressEventOnPnlFrame(QMouseEvent *event) {
