@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <QFileInfo>
 
 namespace RatWalkCore {
 
@@ -110,10 +109,18 @@ class RatFile {
 
    std::string getStepRegisterFilename();
  private:
-   QFileInfo projectFileInfo;
    std::vector<std::string> videoFilenames;
-   std::string OutputFilename;
-   std::string OutputFilenameCorrected;
+   std::vector<std::string> videoFilenamesWithPath;
+   std::string projectPath,
+               projectName,
+               outputFilename,
+               outputFilenameWithPath,
+               outputFilenameCorrected,
+               outputFilenameCorrectedWithPath,
+               targetFilename,
+               targetFilenameWithPath,
+               stepRegisterFilename,
+               stepRegisterFilenameWithPath;
 };
 
 } // namespace RatWalkCore
