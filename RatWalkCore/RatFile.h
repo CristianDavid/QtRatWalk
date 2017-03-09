@@ -36,13 +36,13 @@ class RatFile {
     * \return Una cadena con el nombre del video.
     * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
     */
-   const std::string &getVideoFilename(int idx);
+   const char *getVideoFilename(int idx);
 
    /*!
     * \brief getOutputFilename
     * \return El nombre del archivo de salida, generalmente un .csv
     */
-   const std::string &getOutputFilename();
+   const char *getOutputFilename();
 
    /*!
     * \brief getVideoFilenameWithPath
@@ -57,7 +57,7 @@ class RatFile {
     * \return nombre del archivo de video con ruta absoluta
     * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
     */
-   std::string getVideoFilenameWithPath(int idx);
+   const char *getVideoFilenameWithPath(int idx);
 
    /*!
     * \brief getOutputFilenameWidthPath
@@ -65,34 +65,34 @@ class RatFile {
     * \see getOutputFilename()
     * \return Nombre del archivo de salida con ruta absoluta
     */
-   std::string getOutputFilenameWidthPath();
+   const char *getOutputFilenameWidthPath();
 
    /*!
     * \brief getOutputFilenameCorrected
     * \return Nombre del archivo de salida corregida con ruta absoluta
     */
-   std::string getOutputFilenameCorrected();
+   const char *getOutputFilenameCorrected();
 
    /*!
     * \brief getTargetFilename
     * \return Nombre de la imagen target
     * \todo Que la imagen deba estar en la misma ruta que el ejecutable
     */
-   std::string getTargetFilename();
+   const char *getTargetFilename();
 
    /*!
     * \brief getProjectName
     * \return El nombre del archivo con la información del proyecto. Es el mismo
     *         que el parámetro pasado a RatFile()
     */
-   std::string getProjectName();
+   const char *getProjectName();
 
 
    /*!
     * \brief getProjectPath
     * \return Ruta del proyecto
     */
-   std::string getProjectPath();
+   const char *getProjectPath();
 
    /*!
     * \brief getVideoNames
@@ -107,7 +107,7 @@ class RatFile {
     */
    int numberOfVideos();
 
-   std::string getStepRegisterFilename();
+   const char *getStepRegisterFilename();
  private:
    std::vector<std::string> videoFilenames;
    std::vector<std::string> videoFilenamesWithPath;

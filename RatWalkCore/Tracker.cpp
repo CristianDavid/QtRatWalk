@@ -45,7 +45,7 @@ Tracker::Tracker(const char *fileName) :
       }
    }
 
-   loadStepRegister(ratFile.getStepRegisterFilename().c_str());
+   loadStepRegister(ratFile.getStepRegisterFilename());
 
    ////////////
    //PERFORM THE CORRECTION OF THE VIDEOS
@@ -281,7 +281,7 @@ Tracker::Tracker(const char *fileName) :
    //Try to read the previously annotated things
    string lineToParse;
 
-   ifstream PreviouslyAnnotatedFile(ratFile.getOutputFilenameWidthPath().c_str());
+   ifstream PreviouslyAnnotatedFile(ratFile.getOutputFilenameWidthPath());
    string delimiterRead = ",";
    if (PreviouslyAnnotatedFile.is_open()) {
        //Get rid of the line with the name of colums
@@ -383,7 +383,7 @@ void Tracker::prevFrame() {
 
 void Tracker::guardar() {
    const char *HEADER = "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
-   std::ofstream ofs(ratFile.getOutputFilenameWidthPath().c_str(), std::ofstream::out);
+   std::ofstream ofs(ratFile.getOutputFilenameWidthPath(), std::ofstream::out);
    ofs  << HEADER;
    for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
        for (int i = 0 ;i < VideoToAnalyze[VideoNumber].NumberOfFrames; i++) {
@@ -410,7 +410,7 @@ void Tracker::guardar() {
    }
    ofs.close();
    saveCorrectedFile();
-   saveStepRegister(ratFile.getStepRegisterFilename().c_str());
+   saveStepRegister(ratFile.getStepRegisterFilename());
 }
 
 void Tracker::traeEsqueleto() {
@@ -475,7 +475,7 @@ void Tracker::setCurrentVideo(int index) {
 }
 
 void Tracker::saveCorrectedFile() {
-    std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected().c_str());
+    std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected());
     ofsCorrected << "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
     for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
         Video &video = VideoToAnalyze[VideoNumber];

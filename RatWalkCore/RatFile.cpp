@@ -37,40 +37,40 @@ RatFile::RatFile(const char *filename) {
    }
 }
 
-const std::string &RatFile::getVideoFilename(int idx) {
+const char *RatFile::getVideoFilename(int idx) {
    if (idx < 0 || idx >= numberOfVideos())
       throw std::out_of_range("RatFile::getVideoFilename(int)");
-   return videoFilenames[idx];
+   return videoFilenames[idx].c_str();
 }
 
-const std::string &RatFile::getOutputFilename() {
-   return outputFilename;
+const char *RatFile::getOutputFilename() {
+   return outputFilename.c_str();
 }
 
-std::string RatFile::getVideoFilenameWithPath(int idx) {
+const char *RatFile::getVideoFilenameWithPath(int idx) {
    if (idx < 0 || idx >= numberOfVideos())
       throw std::out_of_range("RatFile::getVideoFilenameWithPath(int)");
-   return videoFilenamesWithPath[idx];
+   return videoFilenamesWithPath[idx].c_str();
 }
 
-std::string RatFile::getOutputFilenameWidthPath() {
-   return outputFilenameWithPath;
+const char *RatFile::getOutputFilenameWidthPath() {
+   return outputFilenameWithPath.c_str();
 }
 
-std::string RatFile::getOutputFilenameCorrected() {
-   return outputFilenameCorrectedWithPath;
+const char *RatFile::getOutputFilenameCorrected() {
+   return outputFilenameCorrectedWithPath.c_str();
 }
 
-std::string RatFile::getTargetFilename() {
-   return targetFilenameWithPath;
+const char *RatFile::getTargetFilename() {
+   return targetFilenameWithPath.c_str();
 }
 
-std::string RatFile::getProjectName() {
-   return projectName;
+const char *RatFile::getProjectName() {
+   return projectName.c_str();
 }
 
-std::string RatFile::getProjectPath() {
-   return projectPath;
+const char *RatFile::getProjectPath() {
+   return projectPath.c_str();
 }
 
 const std::vector<std::string> &RatFile::getVideoNames() {
@@ -81,8 +81,8 @@ int RatFile::numberOfVideos() {
     return (int)videoFilenames.size();
 }
 
-std::string RatFile::getStepRegisterFilename() {
-    return stepRegisterFilenameWithPath;
+const char *RatFile::getStepRegisterFilename() {
+    return stepRegisterFilenameWithPath.c_str();
 }
 
 } // namespace RatWalkCore
