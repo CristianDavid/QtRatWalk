@@ -256,7 +256,7 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    QFileInfo fileInfo(fileName);
    QStringList projectName(fileInfo.fileName());
    QTreeWidgetItem *projectRootItem = new QTreeWidgetItem(projectName);
-   for (const std::string &videoName : getCurrentProject()->getVideoNames()) {
+   for (const std::string &videoName : getCurrentProject()->getVideoFilenames()) {
       QString str = QString::fromStdString(videoName);
       QFileInfo fileInfo(str);
       QStringList fileName(fileInfo.fileName());

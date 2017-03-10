@@ -37,20 +37,16 @@ RatFile::RatFile(const char *filename) {
    }
 }
 
-const char *RatFile::getVideoFilename(int idx) {
+const char *RatFile::getVideoFilename(int idx, bool withPath) {
    if (idx < 0 || idx >= numberOfVideos())
-      throw std::out_of_range("RatFile::getVideoFilename(int)");
-   return videoFilenames[idx].c_str();
+      throw std::out_of_range("RatFile::getVideoFilename(int, bool)");
+   std::string &res = withPath? videoFilenamesWithPath[idx] :
+                                videoFilenames[idx];
+   return res.c_str();
 }
 
 const char *RatFile::getOutputFilename() {
    return outputFilename.c_str();
-}
-
-const char *RatFile::getVideoFilenameWithPath(int idx) {
-   if (idx < 0 || idx >= numberOfVideos())
-      throw std::out_of_range("RatFile::getVideoFilenameWithPath(int)");
-   return videoFilenamesWithPath[idx].c_str();
 }
 
 const char *RatFile::getOutputFilenameWidthPath() {
@@ -73,7 +69,7 @@ const char *RatFile::getProjectPath() {
    return projectPath.c_str();
 }
 
-const std::vector<std::string> &RatFile::getVideoNames() {
+const std::vector<std::string> &RatFile::getVideoFilenames() {
    return videoFilenames;
 }
 
@@ -81,8 +77,10 @@ int RatFile::numberOfVideos() {
     return (int)videoFilenames.size();
 }
 
-const char *RatFile::getStepRegisterFilename() {
-    return stepRegisterFilenameWithPath.c_str();
+const char *RatFile::getStepRegisterFilename(bool withPath) {
+   const std::string &res = withPath? stepRegisterFilenameWithPath :
+                                      stepRegisterFilename;
+   return res.c_str();
 }
 
 } // namespace RatWalkCore

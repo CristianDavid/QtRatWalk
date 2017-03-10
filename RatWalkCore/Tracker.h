@@ -155,10 +155,10 @@ class Tracker {
    const Video &getCurrentVideoAnalyzed();
 
    /*!
-    * \brief getVideoNames
+    * \brief getVideoFilenames
     * \return Vector de cadenas con los nombres de los videos
     */
-   const std::vector<std::string> &getVideoNames();
+   const std::vector<std::string> &getVideoFilenames();
 
    /*!
     * \brief Establece el video que se está analizando actualmente

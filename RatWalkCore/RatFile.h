@@ -36,28 +36,13 @@ class RatFile {
     * \return Una cadena con el nombre del video.
     * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
     */
-   const char *getVideoFilename(int idx);
+   const char *getVideoFilename(int idx, bool withPath = true);
 
    /*!
     * \brief getOutputFilename
     * \return El nombre del archivo de salida, generalmente un .csv
     */
    const char *getOutputFilename();
-
-   /*!
-    * \brief getVideoFilenameWithPath
-    *
-    * Regresa el nombre de un video del proyecto incluyendo la ruta del video.
-    * Equivalente a getProyectPath() + getVideoFilename()
-    *
-    * \see getProjectPath()
-    * \see getVideoFilename()
-    *
-    * \param[in] idx el índice del video, 0 <= idx < numberOfVideos()
-    * \return nombre del archivo de video con ruta absoluta
-    * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
-    */
-   const char *getVideoFilenameWithPath(int idx);
 
    /*!
     * \brief getOutputFilenameWidthPath
@@ -95,10 +80,10 @@ class RatFile {
    const char *getProjectPath();
 
    /*!
-    * \brief getVideoNames
+    * \brief getVideoFilenames
     * \return Vector con los nombres de los videos del proyecto
     */
-   const std::vector<std::string> &getVideoNames();
+   const std::vector<std::string> &getVideoFilenames();
 
    /*!
     * \brief numberOfVideos() Número de vídeos en el proyecto.
@@ -107,7 +92,7 @@ class RatFile {
     */
    int numberOfVideos();
 
-   const char *getStepRegisterFilename();
+   const char *getStepRegisterFilename(bool withPath = true);
  private:
    std::vector<std::string> videoFilenames;
    std::vector<std::string> videoFilenamesWithPath;

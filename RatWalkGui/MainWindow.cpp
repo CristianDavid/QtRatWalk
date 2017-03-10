@@ -87,7 +87,7 @@ void MainWindow::on_actionOpen_triggered() {
    QFileInfo fileInfo(fileName);
    QStringList projectName(fileInfo.fileName());
    QTreeWidgetItem *projectRootItem = new QTreeWidgetItem(projectName);
-   for (const std::string &videoName : ratWalkTracker->getVideoNames()) {
+   for (const std::string &videoName : ratWalkTracker->getVideoFilenames()) {
       QString str = QString::fromStdString(videoName);
       QFileInfo fileInfo(str);
       QStringList fileName(fileInfo.fileName());
