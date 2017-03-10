@@ -3,6 +3,8 @@
 
 #include <opencv2/opencv.hpp>
 
-extern cv::Mat HLeft,HMiddle,HRight;
+namespace RatWalkCore {
+   extern cv::Mat HLeft,HMiddle,HRight;
+}
 
 #endif // RATWALKCONSTANTES_H

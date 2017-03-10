@@ -487,9 +487,6 @@ resize(new_image, SegmentedZoomedImageRegion, dsize);
   SampleColor.val[1]=centers.at<float>(RegionCenterClusterIDX, 1);
   SampleColor.val[2]=centers.at<float>(RegionCenterClusterIDX, 2);
 
-
-  int ColTol=15;
-
   //For the computation of the region Centroid
   float MeanX=0,MeanY=0;
   int NumberOfPixelsInRegion=0;
@@ -647,9 +644,6 @@ int Video::SegmentRegionFromColorStatistics(int x, int y, int HalfWindowSize, in
           }
 
   }
-
-
-  int ColTol=15;
 
   //For the computation of the region Centroid
   float MeanX=0,MeanY=0;

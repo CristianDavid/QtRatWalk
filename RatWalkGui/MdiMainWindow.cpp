@@ -273,7 +273,7 @@ void RatWalkGui::MdiMainWindow::on_actionOpen_triggered() {
    }
    anglePlotters.push_back(AnglePlotterArray());
    AnglePlotterArray &newAnglePlotters = getAnglePlotters();
-   for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+   for (int i = 0; i < (int)anglePlotterSubWindows.size(); i++) {
       QString title = "T" + QString::number(i+1) + " [" +
                       projectName.front() + "]";
       newAnglePlotters[i] = new AnglePlotter;
@@ -296,7 +296,7 @@ void RatWalkGui::MdiMainWindow::on_actionClose_triggered() {
    projects.erase(projects.begin() + currentProjectIdx);
    ui->twProjecto->takeTopLevelItem(currentProjectIdx);
    setCurrentProject(projects.size()-1);
-   for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+   for (int i = 0; i < (int)anglePlotterSubWindows.size(); i++) {
       anglePlotterSubWindows[i].setWidget(getAnglePlotters()[i]);
    }
    anglePlotters.pop_back();
@@ -321,6 +321,7 @@ void RatWalkGui::MdiMainWindow::on_btnTraerEsqueleto_clicked() {
 }
 
 void RatWalkGui::MdiMainWindow::on_checkBoxMostrarEsqueleto_stateChanged(int state) {
+    (void) state;
     reloadFrame();
 }
 
@@ -348,7 +349,7 @@ void RatWalkGui::MdiMainWindow::on_twProjecto_doubleClicked(const QModelIndex &i
    }
    stepBegin = -1;
    setCurrentProject(currentProject);
-   for (int i = 0; i < anglePlotterSubWindows.size(); i++) {
+   for (int i = 0; i < (int)anglePlotterSubWindows.size(); i++) {
       AnglePlotter *anglePlotter = getAnglePlotters()[i];
       QMdiSubWindow &subWindow   = anglePlotterSubWindows[i];
       if (subWindow.widget() != anglePlotter) {

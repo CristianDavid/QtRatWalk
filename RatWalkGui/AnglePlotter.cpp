@@ -90,7 +90,7 @@ void AnglePlotter::showCurrentCoordinates(QPoint realPoint) {
     if (framesPerVideo.size() == 0) return;
     QPointF logicPoint = ui->plotter->realPoint2LogicPoint(realPoint);
     int    globalFrame = logicPoint.x();
-    int    localFrame  = localFrame = globalFrame;
+    int    localFrame  = globalFrame;
     int    videoNumber;
     double angle       = logicPoint.y();
     for (int i = 0; i < (int)framesPerVideo.size(); i++) {

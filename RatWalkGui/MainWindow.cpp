@@ -139,6 +139,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int value) {
 }
 
 void MainWindow::on_checkBoxMostrarEsqueleto_stateChanged(int state) {
+   (void) state;
    reloadFrame();
 }
 

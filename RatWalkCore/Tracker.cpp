@@ -23,12 +23,12 @@
 #include "RatWalkCore/Points.h"
 #include <QDebug>
 
-cv::Mat HLeft, HMiddle, HRight; // extern global variables
-
 using namespace  cv;
 using namespace std;
 
 namespace RatWalkCore {
+
+cv::Mat HLeft, HMiddle, HRight; // extern global variables
 
 Tracker::Tracker(const char *fileName) :
    ratFile(fileName) {
@@ -163,7 +163,7 @@ Tracker::Tracker(const char *fileName) :
        //-- Compute the Trasnformation Matrix
        std::vector<Point2f> ImageLeftControlPoints,ImageRightControlPoints,ImageMiddleControlPoints;
        std::vector<Point2f> TargetImageControlPointsLeft,TargetImageControlPointsMiddle,TargetImageControlPointsRight;
-       for( int i = 0; i < good_matchesLeft.size(); i++ )
+       for( int i = 0; i < (int)good_matchesLeft.size(); i++ )
        {
            //-- Get the keypoints from the good matches
            ImageLeftControlPoints.push_back( keyPointsImageLeft[ good_matchesLeft[i].queryIdx ].pt );
@@ -171,7 +171,7 @@ Tracker::Tracker(const char *fileName) :
        }
        HLeft = findHomography( ImageLeftControlPoints, TargetImageControlPointsLeft, CV_RANSAC );
 
-       for( int i = 0; i < good_matchesMiddle.size(); i++ )
+       for( int i = 0; i < (int)good_matchesMiddle.size(); i++ )
        {
            //-- Get the keypoints from the good matches
            ImageMiddleControlPoints.push_back( KeyPointsImageMiddle[ good_matchesMiddle[i].queryIdx ].pt );
@@ -179,7 +179,7 @@ Tracker::Tracker(const char *fileName) :
        }
        HMiddle = findHomography( ImageMiddleControlPoints, TargetImageControlPointsMiddle, CV_RANSAC );
 
-       for( int i = 0; i < good_matchesRight.size(); i++ )
+       for( int i = 0; i < (int)good_matchesRight.size(); i++ )
        {
            //-- Get the keypoints from the good matches
            ImageRightControlPoints.push_back( KeyPointsImageRight[ good_matchesRight[i].queryIdx ].pt );
