@@ -10,7 +10,7 @@
 #include "RatWalkGui/AnglePlotter.h"
 #include "RatWalkCore/Constantes.h"
 #include "RatWalkGui/ImageViewer.h"
-#include "RatWalkCore/Tracker.h"
+#include "RatWalkCore/Project.h"
 
 namespace RatWalkGui {
 
@@ -79,7 +79,7 @@ private slots:
    void on_actionMostrar_zoom_triggered();
 
 private:
-   typedef std::shared_ptr<RatWalkCore::Tracker> ProjectPtr;
+   typedef std::shared_ptr<RatWalkCore::Project> ProjectPtr;
    typedef std::vector<ProjectPtr> ProjectVector;
    typedef std::array<AnglePlotter*, RatWalkCore::NUMBER_OF_ANGLES_CALCULATED>
       AnglePlotterArray;

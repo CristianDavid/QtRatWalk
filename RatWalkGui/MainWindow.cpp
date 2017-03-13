@@ -221,7 +221,7 @@ void MainWindow::onActionsShowSubWindowTriggered() {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-   using RatWalkCore::Tracker;
+   using RatWalkCore::Project;
    using RatWalkCore::Video;
    QString fileName = QFileDialog::getOpenFileName(
       this,
@@ -231,9 +231,9 @@ void MainWindow::on_actionOpen_triggered() {
    );
    if (fileName.isNull()) return;
 
-   std::atomic<RatWalkCore::Tracker *> newProjectPtr(nullptr);
+   std::atomic<RatWalkCore::Project *> newProjectPtr(nullptr);
    std::thread openProject([&newProjectPtr, &fileName] {
-      newProjectPtr = new Tracker(fileName.toStdString().c_str());
+      newProjectPtr = new Project(fileName.toStdString().c_str());
    });
    QApplication::setOverrideCursor(Qt::BusyCursor);
    setEnabled(false);
@@ -518,7 +518,7 @@ void MainWindow::on_btnEreaseStep_clicked() {
 }
 
 void MainWindow::on_actionExport_angles_triggered() {
-   using RatWalkCore::Tracker;
+   using RatWalkCore::Project;
    std::vector<const char*> openProjectsNames;
    for (ProjectPtr projectPtr : projects) {
       openProjectsNames.push_back(projectPtr->getProjectName());

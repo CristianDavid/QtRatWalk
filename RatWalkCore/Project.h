@@ -1,5 +1,5 @@
-#ifndef RATWALKTRACKER_H
-#define RATWALKTRACKER_H
+#ifndef RATWALKCORE_PROJECT_H
+#define RATWALKCORE_PROJECT_H
 
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -11,17 +11,17 @@
 namespace RatWalkCore {
 
 /*!
- * \brief La clase Tracker maneja toda la aplicación y los datos de manera
+ * \brief La clase Project maneja toda la aplicación y los datos de manera
  * independiente de la interfaz de usuario
  */
-class Tracker {
+class Project {
  public:
    /*!
-    * \brief Tracker Constructor con el nombre de archivo rat
+    * \brief Project Constructor con el nombre de archivo rat
     * \param fileName Nombre del archivo con el proyecto rat
     * \todo Hacer mejor manejo de errores al momento de leer archivos
     */
-   Tracker(const char *fileName);
+   Project(const char *fileName);
 
    /*!
     * \brief addPointOnCurrentFrame Agrega un nuevo punto en el frame actual
@@ -203,4 +203,4 @@ class Tracker {
 
 } // namespace RatWalkCore
 
-#endif // RATWALKTRACKER_H
+#endif // RATWALKCORE_PROJECT_H

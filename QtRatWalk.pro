@@ -17,14 +17,14 @@ SOURCES += main.cpp \
     RatWalkGui/ImageViewer.cpp \
     RatWalkCore/RatFile.cpp \
     RatWalkCore/Frame.cpp \
-    RatWalkCore/Tracker.cpp \
     RatWalkCore/Video.cpp \
     RatWalkGui/Plotter.cpp \
     RatWalkGui/AnglePlotter.cpp \
     RatWalkCore/StepRegister.cpp \
     RatWalkGui/ExportAnglesDialog.cpp \
     RatWalkCore/Constantes.cpp \
-    RatWalkGui/MainWindow.cpp
+    RatWalkGui/MainWindow.cpp \
+    RatWalkCore/Project.cpp
 
 HEADERS  += \
     RatWalkCore/Points.h \
@@ -33,7 +33,6 @@ HEADERS  += \
     RatWalkCore/Constantes.h \
     RatWalkCore/ControlPoint.h \
     RatWalkCore/Frame.h \
-    RatWalkCore/Tracker.h \
     RatWalkCore/RatFile.h \
     RatWalkCore/Video.h \
     RatWalkCore/RatWalkCore.h \
@@ -41,7 +40,8 @@ HEADERS  += \
     RatWalkGui/AnglePlotter.h \
     RatWalkCore/StepRegister.h \
     RatWalkGui/ExportAnglesDialog.h \
-    RatWalkGui/MainWindow.h
+    RatWalkGui/MainWindow.h \
+    RatWalkCore/Project.h
 
 FORMS    += \
     RatWalkGui/AnglePlotter.ui \

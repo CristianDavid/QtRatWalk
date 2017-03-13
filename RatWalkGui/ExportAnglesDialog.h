@@ -9,7 +9,7 @@
 #include <QDialog>
 #include <QFrame>
 #include <QLabel>
-#include <RatWalkCore/Tracker.h>
+#include <RatWalkCore/Project.h>
 
 namespace RatWalkGui {
 
