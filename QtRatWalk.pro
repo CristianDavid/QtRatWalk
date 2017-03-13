@@ -24,11 +24,12 @@ SOURCES += main.cpp \
     RatWalkGui/MdiMainWindow.cpp \
     RatWalkGui/AnglePlotter.cpp \
     RatWalkCore/StepRegister.cpp \
-    RatWalkGui/ExportAnglesDialog.cpp
+    RatWalkGui/ExportAnglesDialog.cpp \
+    RatWalkCore/Constantes.cpp
 
 HEADERS  += \
-    RatWalkCore/Points.h \
     RatWalkGui/MainWindow.h \
+    RatWalkCore/Points.h \
     RatWalkGui/cvMat2QtImage.h \
     RatWalkGui/ImageViewer.h \
     RatWalkCore/Constantes.h \

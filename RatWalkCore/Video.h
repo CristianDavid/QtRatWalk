@@ -7,7 +7,6 @@ namespace RatWalkCore {
 
 /*!
  * \brief Datos de un vídeo para analizar
- * \todo Entender mejor la clase
  */
 class Video {
 private:

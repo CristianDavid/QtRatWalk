@@ -19,7 +19,7 @@ int Video::OpenVideoFile(char VideoFileName[]){
    FrameProperties=new Frame[NumberOfFrames];
    //Initialize the tracking points objects for each frame
    for (int Frame=0;Frame<NumberOfFrames;Frame++)
-      FrameProperties[Frame].SetNumberOfNumberOfPointsToTrack(NUMBEROFPOINTSTOTRACK);
+      FrameProperties[Frame].SetNumberOfNumberOfPointsToTrack(NUMBER_OF_POINTS_TO_TRACK);
 
    //Read the first frame
    bool bSuccess = videoObject.read(CurrentFrameData);

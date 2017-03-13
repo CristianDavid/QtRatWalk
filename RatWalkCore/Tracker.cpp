@@ -26,9 +26,9 @@
 using namespace  cv;
 using namespace std;
 
-namespace RatWalkCore {
+const int HALF_WINDOW_SIZE = 9;
 
-cv::Mat HLeft, HMiddle, HRight; // extern global variables
+namespace RatWalkCore {
 
 Tracker::Tracker(const char *fileName) :
    ratFile(fileName) {
@@ -304,19 +304,19 @@ Tracker::Tracker(const char *fileName) :
 
            Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber];
 
-           for (int i = 0; i < NpointsToTrack && !tokens[i*2+2].empty(); i++) {
+           for (int i = 0; i < NUMBER_OF_POINTS_TO_TRACK && !tokens[i*2+2].empty(); i++) {
                frame.TrackedPointsInFrame[i].CoorX  = stoi(tokens[i*2+2]);
                frame.TrackedPointsInFrame[i].CoorY  = stoi(tokens[i*2+3]);
                frame.TrackedPointsInFrame[i].Theta = stod(tokens[i+12]);
                frame.NumberOfTRegisteredPoints++;
            }
-           PointID = std::min(NpointsToTrack-1, frame.NumberOfTRegisteredPoints);
+           PointID = std::min(NUMBER_OF_POINTS_TO_TRACK-1, frame.NumberOfTRegisteredPoints);
        }
        //Create the corrected
 
        for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
            for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
-               for (int PointId=0;PointId<NUMBEROFPOINTSTOTRACK;PointId++){
+               for (int PointId=0;PointId<NUMBER_OF_POINTS_TO_TRACK;PointId++){
                    int x=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorX;
                    int y=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorY;
                    std::vector<Point2f> vec;
@@ -423,21 +423,21 @@ void Tracker::traeEsqueleto() {
          for (int i = 0; i < prevFrame.NumberOfTRegisteredPoints; i++) {
             ControlPoint p = prevFrame.TrackedPointsInFrame[i];
 
-            currentVideo.SelectPoint(p.CoorX, p.CoorY, HalfWindowSize, i, CurrentVideoAnalyzed);
+            currentVideo.SelectPoint(p.CoorX, p.CoorY, HALF_WINDOW_SIZE, i, CurrentVideoAnalyzed);
             //currentFrame.SetTrackedPoints(i, p.x, p.y);
          }
-         PointID = std::min(NpointsToTrack-1, currentFrame.NumberOfTRegisteredPoints);
+         PointID = std::min(NUMBER_OF_POINTS_TO_TRACK-1, currentFrame.NumberOfTRegisteredPoints);
          sinAsignar = false;
       }
    }
    if (sinAsignar) {
       currentFrame.NumberOfTRegisteredPoints = 0;
-      PointID = NpointsToTrack-1;
+      PointID = NUMBER_OF_POINTS_TO_TRACK-1;
       int step = currentVideo.Width / 6,
           x    = step,
           y    = currentVideo.Height / 2;
       for (int i = 0; i < 5; i++, x += step) {
-         currentVideo.SelectPoint(x, y, HalfWindowSize, i, CurrentVideoAnalyzed);
+         currentVideo.SelectPoint(x, y, HALF_WINDOW_SIZE, i, CurrentVideoAnalyzed);
       }
    }
 }
@@ -455,7 +455,7 @@ cv::Mat Tracker::getZoomedRegion(int x, int y, int frameWidth, int frameHeight) 
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   return currentVideo.getZoomedRegion(x2, y2, HalfWindowSize);
+   return currentVideo.getZoomedRegion(x2, y2, HALF_WINDOW_SIZE);
 }
 
 const Video &Tracker::getCurrentVideoAnalyzed() {
@@ -544,7 +544,7 @@ void Tracker::saveStepRegister(const char *filename) {
     }
 }
 
-string Tracker::getProjectName() {
+const char *Tracker::getProjectName() {
    return ratFile.getProjectName();
 }
 
@@ -553,8 +553,8 @@ void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeig
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   currentVideo.SelectPoint(x2, y2, HalfWindowSize, PointID, CurrentVideoAnalyzed);
-   PointID = std::min(PointID+1, NpointsToTrack-1);
+   currentVideo.SelectPoint(x2, y2, HALF_WINDOW_SIZE, PointID, CurrentVideoAnalyzed);
+   PointID = std::min(PointID+1, NUMBER_OF_POINTS_TO_TRACK-1);
 }
 
 void Tracker::setPointOnCurrentFrame(int pointId, int x, int y,
@@ -563,7 +563,7 @@ void Tracker::setPointOnCurrentFrame(int pointId, int x, int y,
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   currentVideo.SelectPoint(x2, y2, HalfWindowSize, pointId, CurrentVideoAnalyzed);
+   currentVideo.SelectPoint(x2, y2, HALF_WINDOW_SIZE, pointId, CurrentVideoAnalyzed);
 }
 
 void Tracker::deletePointOnCurrentFrame(int pointId) {

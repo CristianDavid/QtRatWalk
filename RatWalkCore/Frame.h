@@ -19,7 +19,6 @@ class Frame {
 public:
    bool IsSet=0;
    int FrameNumber;
-   //RatWalkControlPoint *TrackedPointsInFrame;
    std::vector<ControlPoint> TrackedPointsInFrame;
    int NumberOfTRegisteredPoints=0;
    int NumberOfPointsToTrack;

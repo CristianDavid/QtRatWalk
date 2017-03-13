@@ -8,9 +8,6 @@
 #include "RatWalkCore/RatFile.h"
 #include "RatWalkCore/StepRegister.h"
 
-#define HalfWindowSize 9
-#define NpointsToTrack 5
-
 namespace RatWalkCore {
 
 /*!
@@ -190,18 +187,18 @@ class Tracker {
    void loadStepRegister(const char *filename);
    void saveStepRegister(const char *filename);
 
-   std::string getProjectName();
+   const char *getProjectName();
 
  private:
    cv::Mat TargetImage, TargetImageGray,
            Image1,     Image2,       Image3,
            ImageLeft,  ImageMiddle,  ImageRight,
            ImageLeftG, ImageMiddleG, ImageRightG, TargetImageGrayG;
-   Video VideoToAnalyze[3];
+   Video VideoToAnalyze[3]; //! todo magic number
    int CurrentVideoAnalyzed = 0;
    int PointID = 0;
    RatFile ratFile;
-   StepRegister stepRegisters[3];
+   StepRegister stepRegisters[3]; //! todo magic number
 };
 
 } // namespace RatWalkCore
