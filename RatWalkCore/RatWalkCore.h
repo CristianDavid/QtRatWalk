@@ -2,8 +2,9 @@
 #define RATWALKCORE_H
 
 /*!
- * Este módulo contiene el funcionamiento escencial para administrar
- * los vídeos y los puntos capturados en cada frame.
+ * This namespace contains the escential functionality necesari to manage
+ * the videos, points, angles, frames and other data related to the RatWalk
+ * aplication.
  */
 namespace RatWalkCore {}
 

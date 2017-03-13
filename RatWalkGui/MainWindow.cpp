@@ -283,11 +283,11 @@ void MainWindow::on_actionOpen_triggered() {
 }
 
 void MainWindow::on_actionSave_triggered() {
-   getCurrentProject()->guardar();
+   getCurrentProject()->save();
 }
 
 void MainWindow::on_actionClose_triggered() {
-   getCurrentProject()->guardar();
+   getCurrentProject()->save();
    projects.erase(projects.begin() + currentProjectIdx);
    ui->twProjecto->takeTopLevelItem(currentProjectIdx);
    setCurrentProject(projects.size()-1);
@@ -299,7 +299,7 @@ void MainWindow::on_actionClose_triggered() {
 
 void MainWindow::on_btnNext_clicked() {
    getCurrentProject()->nextFrame();
-   getCurrentProject()->guardar();
+   getCurrentProject()->save();
    onFrameNumberChanged();
    reloadFrame();
 }
@@ -311,7 +311,7 @@ void MainWindow::on_btnPrev_clicked() {
 }
 
 void MainWindow::on_btnTraerEsqueleto_clicked() {
-   getCurrentProject()->traeEsqueleto();
+   getCurrentProject()->bringPreviousSkeleton();
    reloadFrame();
 }
 

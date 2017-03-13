@@ -382,7 +382,7 @@ void Project::prevFrame() {
    PointID = std::min(PointID, 4);
 }
 
-void Project::guardar() {
+void Project::save() {
    const char *HEADER = "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
    std::ofstream ofs(ratFile.getOutputFilenameWidthPath(), std::ofstream::out);
    ofs  << HEADER;
@@ -414,7 +414,7 @@ void Project::guardar() {
    saveStepRegister(ratFile.getStepRegisterFilename());
 }
 
-void Project::traeEsqueleto() {
+void Project::bringPreviousSkeleton() {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed]; //!< \todo Project debería tener un método currentVideo()
    Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame]; //!< \todo Video debería tener un método currentFrame()
    bool sinAsignar = true;

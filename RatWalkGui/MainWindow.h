@@ -18,17 +18,38 @@ namespace Ui {
 class MainWindow;
 }
 
+/*!
+ * \brief The MainWindow class is the main window of the QtRatWalk application.
+ */
 class MainWindow : public QMainWindow {
    Q_OBJECT
 
 public:
+   /*!
+    * \brief Creates a new MainWindow
+    * \param parent The widget's parent.
+    */
    explicit MainWindow(QWidget *parent = 0);
+
+   /*!
+    * Destroys the MainWindow.
+    */
    ~MainWindow();
 
-    void reloadFrame();
+   /*!
+    * \brief reloadFrame reloads the content of the current frame shown on the
+    *        screen.
+    */
+   void reloadFrame();
 
-    void showZoomedRegion(QPoint point, int frameWidth, int frameHeight);
-
+   /*!
+    * \brief showZoomedRegion Shows the zoomed region.
+    * \param point The center of the region to show, usually the cursor
+    *        position.
+    * \param frameWidth
+    * \param frameHeight
+    */
+   void showZoomedRegion(QPoint point, int frameWidth, int frameHeight);
 protected:
    bool eventFilter(QObject *watched, QEvent *event);
 

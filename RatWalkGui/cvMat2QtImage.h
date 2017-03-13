@@ -4,6 +4,11 @@
 #include <QImage>
 #include <opencv2/opencv.hpp>
 
+/*!
+ * \brief cvMat2QtImage Converts an OpenCv matrix to a QImage.
+ * \param[in] frame OpenCv matrix representing the frame to convert.
+ * \return QImage with the frame data.
+ */
 inline QImage cvMat2QtImage(cv::Mat frame) {
    cv::cvtColor(frame, frame, CV_BGR2RGB);
    auto cleanup = [](void *mat) {

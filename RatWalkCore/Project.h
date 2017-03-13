@@ -11,156 +11,141 @@
 namespace RatWalkCore {
 
 /*!
- * \brief La clase Project maneja toda la aplicación y los datos de manera
- * independiente de la interfaz de usuario
+ * \brief The class Project represents an open RatWalk project, it handles the
+ *        videos, frames and points independently from the gui.
  */
 class Project {
  public:
    /*!
-    * \brief Project Constructor con el nombre de archivo rat
-    * \param fileName Nombre del archivo con el proyecto rat
-    * \todo Hacer mejor manejo de errores al momento de leer archivos
+    * \brief Creates a new project from a rat file
+    * \param[in] fileName Filename of the project's rat file.
     */
    Project(const char *fileName);
 
    /*!
-    * \brief addPointOnCurrentFrame Agrega un nuevo punto en el frame actual
+    * \brief addPointOnCurrentFrame Adds a new point on the current frame
     *
-    * Este método agrega un nuevo punto en el frame actual. El punto (x, y)
-    * que se recibe en los parámetros debe estar de acuerdo al tamaño con que el
-    * frame se muestra en pantalla, esta función traduce el punto a las
-    * coordenadas reales del frame.
+    * This methd adds a new ControPoint in the current frame. The point (x, y)
+    * should be withing the limits of the size of the frame shown on the
+    * screen, this method translated the input coordinates to the actual size
+    * of the frame.
     *
-    * \param x Coordenada en x del punto
-    * \param y Coordenada en y del punto
-    * \param frameWidth Ancho con el que se está mostrando el frame actual
-    * \param frameHeight Altura con la que se está mostrando el frame actual
-    *
-    * \see addPointOnCurrentFrame()
-    *
-    * \todo Validar que (x, y) esté dentro del rango válido
-    * \todo validar que frameWidth  > 0
-    * \todo validar que frameHeight > 0
-    * \todo Adaptar a cambios en las interfaces de las otras clases
+    * \param[in] x X coordinate of the point.
+    * \param[in] y Y coordinate of the point.
+    * \param[in] frameWidth Width of the current frame shown on the screen.
+    * \param[in] frameHeight Height of the current frame shown on the screen.
     */
    void addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight);
 
-
    /*!
-    * \brief setPointOnCurrentFrame Mueve un punto a las posiciones x, y
-    * \param pointId Id del punto a mover
-    * \param x Coordenada del punto en x
-    * \param y Coordenada del punto en y
-    * \param frameWidth Ancho con el que se está mostrando el frame actual
-    * \param frameHeight Altura con la que se está mostrando el frame actual
-    *
-    * \todo Hacer validaciones de los parámetros de entrada
-    * \todo Adaptar a cambios a las interfaces de las otras clases
+    * \brief setPointOnCurrentFrame Sets a point on the coordinates (x, y)
+    * \param[in] pointId Id of the point to be set
+    * \param[in] x X coordinate of the point
+    * \param[in] y Y coordinate of the point
+    * \param[in] frameWidth Witdth of the frame shown on the screen
+    * \param[in] frameHeight Height of the frame shown on the screen
     */
    void setPointOnCurrentFrame(int pointId, int x, int y,
                                int frameWidth, int frameHeight);
 
    /*!
-    * \brief deletePointOnCurrentFrame Elimina un punto en el frame actual
-    * \param[in] pointId Posición del punto a ser eliminado
+    * \brief deletePointOnCurrentFrame Deletes a point from the current frame.
+    * \param[in] pointId If of the point to be deleted.
     */
    void deletePointOnCurrentFrame(int pointId);
 
    /*!
-    * \brief Obtiene el id del punto más cercano a (x, y)
+    * \brief Gets the id of the closest point to (x, y).
     *
-    * Esta función se utiliza para poder seleccionar un punto con el cursor,
-    * de tal manera que se selecciona el punto más cercano que cumpla con la
-    * condición de estar lo bastante cerca.
+    * This function is used to be able to select a point with the cursor by
+    * choosing the closest point that is also close enough to the cursor
+    * position.
     *
-    * \param x Coordenada en x
-    * \param y Coordenada en y
-    * \param frameWidth  Ancho con que se muestra el frame actual
-    * \param frameHeight Altura con que se muestra el frame actual
-    * \param minDistance Mínima distancia a la que debe estar el punto seleccionado
+    * \param[in] x X coordinate.
+    * \param[in] y Y coordinate.
+    * \param[in] frameWidth  Width of the current frame as shown on the screen.
+    * \param[in] frameHeight Height of the current frame as shown on the screen.
+    * \param[in] minDistance Minimum acceptable distance to choose a point.
     *
-    * \return Id del punto más cercano a (x, y) que cumpla con la condición
-    *         de estar a una distancia mínima de minDistance, o -1 si tal punto
-    *         no existe
-    * \todo Validar parametros de entrada
+    * \return Id of the closest point to (x, y) that meets the condition of
+    *         beeing at a minimum distance minDistance from (x, y), or -1
+    *         if such point doesn't exist.
     */
    int getClosestPointID(int x, int y, int frameWidth, int frameHeight,
                          double minDistance = 1.0);
 
    /*!
-    * \brief setFrame Cambia el frame actual a la posición indicada
-    * \param[in] Position Posición del frame
-    * \todo validar posición
+    * \brief setFrame Sets the current frame
+    * \param[in] Position Position of the new current frame
     */
    void setFrame(int Position);
 
    /*!
-    * \brief nextFrame, mueve el frame actual a la siguiente posición
+    * \brief nextFrame moves the current frame to the next position.
     */
    void nextFrame();
 
    /*!
-    * \brief prevFrame, mueve el frame actual a la posición previa
+    * \brief prevFrame moves the current frame to the previous position
     */
    void prevFrame();
 
    /*!
-    * \brief Guarda los puntos capturados en un archivo
+    * \brief Saves the captured points and steps to disk.
     */
-   void guardar();
+   void save();
 
    /*!
-    * \brief Trae los punto del último frame capturado al frame actual.
+    * \brief Brings the captured points from a previous
+    *        frame to the current one.
     *
-    * Esta función copia los puntos del último frame que se haya capturado
-    * al frame actual, en caso de que no se haya capturado ningún frame
-    * anterior, se establece en esqueleto por defecto.
-    *
+    * This method copies the points from the last captured frame onto the
+    * current one, if no points have been captured before on any previous frame
+    * a default set of points is given.
     */
-   void traeEsqueleto();
+   void bringPreviousSkeleton();
 
    /*!
-    * \brief Obtiene el frame actual en forma de matrix
-    * \return Matriz de OpenCv con los valores de cada pixel del frame
+    * \brief Gets the current frame as a matrix.
+    * \return OpenCv matrix containing the values of each pixel on the frame.
     */
    cv::Mat getFrameWithRectangle();
 
    /*!
-    * \brief Obtiene el frame actual con esqueleto
-    * \return Matriz de OpenCv con el esqueleto en el frame
+    * \brief Gets the current frame as a matrix, with the skeleton on it.
+    * \return OpenCv matrix with the current frame including the skeleton.
     */
    cv::Mat getFrameWithSkeleton();
 
    /*!
-    * \brief Obtiene una region del frame con zoom
+    * \brief Gets a zoomed region of the current frame
     *
-    * Obtiene una región rectangular cuyo centro es (x, y) y dicha región
-    * se utiliza para ser mostrada con zoom
+    * Gets a rectangular region of the current frame with its center at (x, y),
+    * this region is used to implement a zoom functionality.
     *
-    * \param x Posición en x
-    * \param y Posición en y
-    * \param frameWidth  Ancho con que se muestra el frame actual
-    * \param frameHeight Alto con que se muestra el frame actual
-    * \return Matriz con la región deseada
+    * \param[in] x X coordinate of the region's center.
+    * \param[in] y Y coordinate of the region's center.
+    * \param[in] frameWidth  Width of the current frame as shown on the screen.
+    * \param[in] frameHeight Height of the current frame as shown on the screen.
+    * \return Matrix with the selected region of the frame.
     */
    cv::Mat getZoomedRegion(int x, int y, int frameWidth, int frameHeight);
 
    /*!
     * \brief getCurrentVideoAnalyzed
-    * \return Referencia al video actual
+    * \return Reference to the current video.
     */
    const Video &getCurrentVideoAnalyzed();
 
    /*!
     * \brief getVideoFilenames
-    * \return Vector de cadenas con los nombres de los videos
+    * \return Vector of string with the names of the videos
     */
    const std::vector<std::string> &getVideoFilenames();
 
    /*!
-    * \brief Establece el video que se está analizando actualmente
-    * \param[in] index Posición del video a analizar
-    * \todo validar índice
+    * \brief Sets the video thats is beeing currently analyzed.
+    * \param[in] index Position of the new video to analyze.
     */
    void setCurrentVideo(int index);
 
@@ -168,27 +153,56 @@ class Project {
     * \brief Saves the annotated corrected data to disk.
     *
     * Saves the corrected coordinates and angles to a csv file.
-    *
     */
    void saveCorrectedFile();
 
    /*!
-    * \brief Produces an array of videos in the rat project
-    * \return Array containing all of the videos
+    * \brief Produces a vector of videos in the rat project
+    * \return Reference to a vector containing all of the videos.
     */
    std::vector<Video> &getVideos();
 
+   /*!
+    * \brief getStepRegisters
+    * \return Reference to a vector containing the step register of each video
+    *         on this project.
+    */
    std::vector<StepRegister> &getStepRegisters();
 
+   /*!
+    * \brief getCurrentStepRegister
+    * \return A reference to the step register of the current video.
+    */
    StepRegister &getCurrentStepRegister();
 
+   /*!
+    * \brief getCurrentVideoIndex
+    * \return Index of the current video.
+    */
    int getCurrentVideoIndex();
 
+   /*!
+    * \brief loadStepRegister Loads the step register from a csv file.
+    * \param filename
+    */
    void loadStepRegister(const char *filename);
+
+   /*!
+    * \brief saveStepRegister Saves the step register to a csv file.
+    * \param filename
+    */
    void saveStepRegister(const char *filename);
 
+   /*!
+    * \brief getProjectName
+    * \return String containing the name of the project.
+    */
    const char *getProjectName();
 
+   /*!
+    * \brief getSize
+    * \return Number of videos in the project.
+    */
    int getSize();
 
  private:
