@@ -7,7 +7,7 @@
 #include <QDir>
 #include <QFileInfo>
 
-const char *RESOURCES_FOLDER = "resources";
+constexpr const char *RESOURCES_FOLDER = "resources";
 
 namespace RatWalkCore {
 
@@ -15,15 +15,15 @@ RatFile::RatFile(const char *filename) {
    QFileInfo   projectFileInfo(filename);
    std::string dirSeparator = {QDir::separator().toLatin1()};
    projectPath = projectFileInfo.path().toStdString() + dirSeparator;
-   projectName = projectFileInfo.fileName().toStdString();
+   projectName = projectFileInfo.baseName().toStdString();
+   qDebug() << "projectName: " << QString::fromStdString(projectName);
    outputFilename          = projectName + ".csv";
    outputFilenameCorrected = projectName + "_Corrected.csv";
    targetFilename          = RESOURCES_FOLDER + dirSeparator +
                               "CalibrationLettersTarget.png";
-   stepRegisterFilename    = projectName + "StepRegister.csv";
+   stepRegisterFilename    = projectName + "_StepRegister.csv";
    outputFilenameWithPath          = projectPath + outputFilename;
    outputFilenameCorrectedWithPath = projectPath + outputFilenameCorrected;
-   targetFilenameWithPath          = projectPath + targetFilename;
    stepRegisterFilenameWithPath    = projectPath + stepRegisterFilename;
 
    std::ifstream inFile(filename);
@@ -58,7 +58,7 @@ const char *RatFile::getOutputFilenameCorrected() {
 }
 
 const char *RatFile::getTargetFilename() {
-   return targetFilenameWithPath.c_str();
+   return targetFilename.c_str();
 }
 
 const char *RatFile::getProjectName() {

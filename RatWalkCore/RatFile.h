@@ -109,7 +109,6 @@ class RatFile {
                outputFilenameCorrected,
                outputFilenameCorrectedWithPath,
                targetFilename,
-               targetFilenameWithPath,
                stepRegisterFilename,
                stepRegisterFilenameWithPath;
 };
