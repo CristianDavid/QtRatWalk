@@ -14,7 +14,6 @@ TEMPLATE = app
 include(xlsx/qtxlsx.pri)
 
 SOURCES += main.cpp \
-    RatWalkGui/MainWindow.cpp \
     RatWalkGui/ImageViewer.cpp \
     RatWalkCore/RatFile.cpp \
     RatWalkCore/Frame.cpp \
@@ -28,7 +27,6 @@ SOURCES += main.cpp \
     RatWalkCore/Constantes.cpp
 
 HEADERS  += \
-    RatWalkGui/MainWindow.h \
     RatWalkCore/Points.h \
     RatWalkGui/cvMat2QtImage.h \
     RatWalkGui/ImageViewer.h \
@@ -45,7 +43,7 @@ HEADERS  += \
     RatWalkCore/StepRegister.h \
     RatWalkGui/ExportAnglesDialog.h
 
-FORMS    += RatWalkGui/MainWindow.ui \
+FORMS    += \
     RatWalkGui/MdiMainWindow.ui \
     RatWalkGui/AnglePlotter.ui \
     RatWalkGui/ExportAnglesDialog.ui
