@@ -92,7 +92,7 @@ void MainWindow::reloadFrame() {
                        getCurrentProject()->getFrameWithRectangle();
     QImage frame = cvMat2QtImage(mat);
     ui->pnlFrame->setImage(frame);
-    RatWalkCore::Video  *videos = getCurrentProject()->getVideos();
+    std::vector<RatWalkCore::Video> &videos = getCurrentProject()->getVideos();
     for (AnglePlotter *anglePlotter : getAnglePlotters()) {
         anglePlotter->getPlotter()->clearPoints();
     }
@@ -260,10 +260,10 @@ void MainWindow::on_actionOpen_triggered() {
    }
    ui->twProjecto->addTopLevelItem(projectRootItem);
 
-   Video *videos = getCurrentProject()->getVideos();
+   std::vector<Video> &videos = getCurrentProject()->getVideos();
 
    std::vector<int> framesPerVideo;
-   for (int i = 0; i < 3; i++) { //! todo magic number here
+   for (int i = 0; i < getCurrentProject()->getSize(); i++) {
         framesPerVideo.push_back(videos[i].NumberOfFrames);
    }
    anglePlotters.push_back(AnglePlotterArray());
@@ -439,8 +439,9 @@ void MainWindow::updateStepInfo() {
 
 void MainWindow::loadSteps() {
     using RatWalkCore::StepRegister;
-    StepRegister *registers = getCurrentProject()->getStepRegisters();
-    for (int i = 0; i < 3; i++) {
+    std::vector<StepRegister> &registers =
+          getCurrentProject()->getStepRegisters();
+    for (int i = 0; i < getCurrentProject()->getSize(); i++) {
         std::vector<StepRegister::Step> steps = registers[i].getSteps();
         for (auto step : steps) {
             for (AnglePlotter *plotter : getAnglePlotters()) {
@@ -544,15 +545,15 @@ void MainWindow::on_actionExport_angles_triggered() {
          for (int i = 0; i < (int)order.size(); i++) {
             int projectNumber = order[i];
             ProjectPtr project = projects[projectNumber];
-            RatWalkCore::StepRegister *stepRegisters = project->getStepRegisters();
-            RatWalkCore::Video *videos = project->getVideos();
+            auto &stepRegisters = project->getStepRegisters();
+            auto &videos = project->getVideos();
             for (int angle = 0; angle < RatWalkCore::NUMBER_OF_ANGLES_CALCULATED; angle++) {
                QString sheetName =
                      "T" + QString::number(angle+1) +
                      " v" + QString::number(i+1) + orientation;
                xlsx.insertSheet(sheetNumber, sheetName);
                xlsx.selectSheet(sheetName);
-               for (int k = 0, column = 1; k < 3; k++) { //! todo again a magic number, this should be the number of videos in the project
+               for (int k = 0, column = 1; k < project->getSize(); k++) {
                   RatWalkCore::StepRegister &stepRegister = stepRegisters[k];
                   RatWalkCore::Video &video = videos[k];
                   auto stepVector = stepRegister.getSteps();

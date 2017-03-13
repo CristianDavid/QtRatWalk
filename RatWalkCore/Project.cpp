@@ -36,6 +36,8 @@ Project::Project(const char *fileName) :
 
    //Open the video files
    for (int i = 0; i < ratFile.numberOfVideos(); i++) {
+      VideoToAnalyze.push_back(Video());
+      stepRegisters.push_back(StepRegister());
       const char *FileNameToRead = ratFile.getVideoFilename(i);
       if (!VideoToAnalyze[i].OpenVideoFile((char *)FileNameToRead)) {
          cout<<"Video File "<<FileNameToRead <<" Could not be opened";
@@ -57,7 +59,7 @@ Project::Project(const char *fileName) :
        resize(OriginalTargetImage, TargetImage, Size(0,0),Scale,Scale,INTER_LINEAR);
        cvtColor(TargetImage, TargetImageGrayG, CV_RGB2GRAY);
 
-       Image1=VideoToAnalyze[0].CurrentFrameData.clone();
+       Image1=VideoToAnalyze[0].CurrentFrameData.clone(); //! \todo Está casado con que sean tres vídeos
        Image2=VideoToAnalyze[1].CurrentFrameData.clone();
        Image3=VideoToAnalyze[2].CurrentFrameData.clone();
 
@@ -504,11 +506,11 @@ void Project::saveCorrectedFile() {
     ofsCorrected.close();
 }
 
-Video *Project::getVideos() {
+std::vector<Video> &Project::getVideos() {
     return VideoToAnalyze;
 }
 
-StepRegister *Project::getStepRegisters() {
+std::vector<StepRegister> &Project::getStepRegisters() {
     return stepRegisters;
 }
 
@@ -546,6 +548,10 @@ void Project::saveStepRegister(const char *filename) {
 
 const char *Project::getProjectName() {
    return ratFile.getProjectName();
+}
+
+int Project::getSize() {
+   return VideoToAnalyze.size();
 }
 
 void Project::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {

@@ -1,9 +1,9 @@
 #ifndef RATWALKCORE_PROJECT_H
 #define RATWALKCORE_PROJECT_H
 
-#include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
+#include <opencv2/opencv.hpp>
 #include "RatWalkCore/Video.h"
 #include "RatWalkCore/RatFile.h"
 #include "RatWalkCore/StepRegister.h"
@@ -176,9 +176,9 @@ class Project {
     * \brief Produces an array of videos in the rat project
     * \return Array containing all of the videos
     */
-   Video *getVideos();
+   std::vector<Video> &getVideos();
 
-   StepRegister *getStepRegisters();
+   std::vector<StepRegister> &getStepRegisters();
 
    StepRegister &getCurrentStepRegister();
 
@@ -189,16 +189,18 @@ class Project {
 
    const char *getProjectName();
 
+   int getSize();
+
  private:
    cv::Mat TargetImage, TargetImageGray,
            Image1,     Image2,       Image3,
            ImageLeft,  ImageMiddle,  ImageRight,
            ImageLeftG, ImageMiddleG, ImageRightG, TargetImageGrayG;
-   Video VideoToAnalyze[3]; //! todo magic number
+   std::vector<Video> VideoToAnalyze;
    int CurrentVideoAnalyzed = 0;
    int PointID = 0;
    RatFile ratFile;
-   StepRegister stepRegisters[3]; //! todo magic number
+   std::vector<StepRegister> stepRegisters;
 };
 
 } // namespace RatWalkCore
