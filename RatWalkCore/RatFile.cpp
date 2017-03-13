@@ -16,7 +16,6 @@ RatFile::RatFile(const char *filename) {
    std::string dirSeparator = {QDir::separator().toLatin1()};
    projectPath = projectFileInfo.path().toStdString() + dirSeparator;
    projectName = projectFileInfo.baseName().toStdString();
-   qDebug() << "projectName: " << QString::fromStdString(projectName);
    outputFilename          = projectName + ".csv";
    outputFilenameCorrected = projectName + "_Corrected.csv";
    targetFilename          = RESOURCES_FOLDER + dirSeparator +
