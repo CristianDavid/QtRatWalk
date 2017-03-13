@@ -1,5 +1,5 @@
-#ifndef RATWALKGUI_MDIMAINWINDOW_H
-#define RATWALKGUI_MDIMAINWINDOW_H
+#ifndef RATWALKGUI_MAINWINDOW_H
+#define RATWALKGUI_MAINWINDOW_H
 
 #include <array>
 #include <memory>
@@ -15,15 +15,15 @@
 namespace RatWalkGui {
 
 namespace Ui {
-class MdiMainWindow;
+class MainWindow;
 }
 
-class MdiMainWindow : public QMainWindow {
+class MainWindow : public QMainWindow {
    Q_OBJECT
 
 public:
-   explicit MdiMainWindow(QWidget *parent = 0);
-   ~MdiMainWindow();
+   explicit MainWindow(QWidget *parent = 0);
+   ~MainWindow();
 
     void reloadFrame();
 
@@ -91,7 +91,7 @@ private:
    ProjectPtr getCurrentProject();
    AnglePlotterArray &getAnglePlotters();
 
-   Ui::MdiMainWindow *ui;
+   Ui::MainWindow *ui;
    ProjectVector projects;
    int currentProjectIdx;
    ImageViewer *zoomedRegionWindow;
@@ -106,4 +106,4 @@ private:
 
 
 } // namespace RatWalkGui
-#endif // RATWALKGUI_MDIMAINWINDOW_H
+#endif // RATWALKGUI_MAINWINDOW_H
