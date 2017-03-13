@@ -87,22 +87,66 @@ public:
      */
     void setYAxisLength(double len);
 
+    /*!
+     * \brief setXRange Sets the range of the x-axis to [minX, maxX].
+     * \param[in] minX
+     * \param[in] maxX
+     */
     void setXRange(double minX, double maxX);
 
+    /*!
+     * \brief setYRange Sets the range of the y-axis to [minY, maxY].
+     * \param minY
+     * \param maxY
+     */
     void setYRange(double minY, double maxY);
 
+    /*!
+     * \brief realPoint2LogicPoint Converts a log point to a real point of the
+     * plotter.
+     *
+     * The logic points are coordinates limited by the x and y ranges, meanwhile
+     * the real points represent real pixels on the widget.
+     *
+     * \param[in] realPoint
+     * \return The logicPoint equivalent of the real point.
+     */
     QPointF realPoint2LogicPoint(QPointF realPoint);
 
+    /*!
+     * \brief logicXRangeLen
+     * \return The distance beetween minX and maxX.
+     */
     double logicXRangeLen();
 
+    /*!
+     * \brief logicYRangeLen
+     * \return The distance beetween minY and maxY.
+     */
     double logicYRangeLen();
 
+    /*!
+     * \brief addVerticalLine
+     * \param pos Logical x position of the line.
+     */
     void addVerticalLine(double pos);
+
+    /*!
+     * \brief clearVerticalLines ereases all the vertical lines.
+     */
     void clearVerticalLines();
 
+    /*!
+     * \brief addVerticalRect adds a vertical rectangle
+     * \param xBegin logical x position of the begining of the rectangle
+     * \param xEnd logical y position of the begining of the rectangle
+     */
     void addVerticalRect(double xBegin, double xEnd);
-    void clearVerticalRects();
 
+    /*!
+     * \brief clearVerticalRects ereases all the rectangles.
+     */
+    void clearVerticalRects();
 protected:
     /**
      * @brief Draws the widget including the currently added points and the axises

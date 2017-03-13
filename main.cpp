@@ -4,13 +4,12 @@
 #include <QKeyEvent>
 
 #include "RatWalkGui/MainWindow.h"
-#include "RatWalkGui/MdiMainWindow.h"
 
 #include "RatWalkGui/Plotter.h"
 
 int main(int argc, char *argv[]) {
    QApplication a(argc, argv);
-   RatWalkGui::MdiMainWindow w;
+   RatWalkGui::MainWindow w;
 
    w.setGeometry(
       QStyle::alignedRect(

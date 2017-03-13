@@ -1,13 +1,12 @@
-#ifndef RATWALKTRACKERVIDEOOBJECT_H
-#define RATWALKTRACKERVIDEOOBJECT_H
+#ifndef RATWALKCORE_VIDEOS
+#define RATWALKCORE_VIDEOS
 
 #include "RatWalkCore/Frame.h"
 
 namespace RatWalkCore {
 
 /*!
- * \brief Datos de un vídeo para analizar
- * \todo Entender mejor la clase
+ * \brief Data of a video to analyze
  */
 class Video {
 private:
@@ -30,10 +29,6 @@ public:
    int GetPreviousFrame();
    int GetFrameNumber(double FrameNumber);
     //Function to show the skeleton in the current frame
-   /*!
-    * \brief ShowSkeletonInCurrentFrame
-    * \todo creo que estas funciones "Show" deberían irse
-    */
    void ShowSkeletonInCurrentFrame();
    void ShowFrameWithTrackingPoints();
    //Function to show the skeleton in the current frame
@@ -50,4 +45,4 @@ public:
 
 } // namespace RatWalkCore
 
-#endif // RATWALKTRACKERVIDEOOBJECT_H
+#endif // RATWALKCORE_VIDEOS

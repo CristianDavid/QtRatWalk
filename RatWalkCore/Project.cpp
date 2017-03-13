@@ -1,4 +1,4 @@
-#include "RatWalkCore/Tracker.h"
+#include "RatWalkCore/Project.h"
 
 #include <unistd.h>
 #include <cstdio>
@@ -23,19 +23,21 @@
 #include "RatWalkCore/Points.h"
 #include <QDebug>
 
-cv::Mat HLeft, HMiddle, HRight; // extern global variables
-
 using namespace  cv;
 using namespace std;
 
+constexpr int HALF_WINDOW_SIZE = 9;
+
 namespace RatWalkCore {
 
-Tracker::Tracker(const char *fileName) :
+Project::Project(const char *fileName) :
    ratFile(fileName) {
    CurrentVideoAnalyzed=0;
 
    //Open the video files
    for (int i = 0; i < ratFile.numberOfVideos(); i++) {
+      VideoToAnalyze.push_back(Video());
+      stepRegisters.push_back(StepRegister());
       const char *FileNameToRead = ratFile.getVideoFilename(i);
       if (!VideoToAnalyze[i].OpenVideoFile((char *)FileNameToRead)) {
          cout<<"Video File "<<FileNameToRead <<" Could not be opened";
@@ -57,7 +59,7 @@ Tracker::Tracker(const char *fileName) :
        resize(OriginalTargetImage, TargetImage, Size(0,0),Scale,Scale,INTER_LINEAR);
        cvtColor(TargetImage, TargetImageGrayG, CV_RGB2GRAY);
 
-       Image1=VideoToAnalyze[0].CurrentFrameData.clone();
+       Image1=VideoToAnalyze[0].CurrentFrameData.clone(); //! \todo Está casado con que sean tres vídeos
        Image2=VideoToAnalyze[1].CurrentFrameData.clone();
        Image3=VideoToAnalyze[2].CurrentFrameData.clone();
 
@@ -163,7 +165,7 @@ Tracker::Tracker(const char *fileName) :
        //-- Compute the Trasnformation Matrix
        std::vector<Point2f> ImageLeftControlPoints,ImageRightControlPoints,ImageMiddleControlPoints;
        std::vector<Point2f> TargetImageControlPointsLeft,TargetImageControlPointsMiddle,TargetImageControlPointsRight;
-       for( int i = 0; i < good_matchesLeft.size(); i++ )
+       for( int i = 0; i < (int)good_matchesLeft.size(); i++ )
        {
            //-- Get the keypoints from the good matches
            ImageLeftControlPoints.push_back( keyPointsImageLeft[ good_matchesLeft[i].queryIdx ].pt );
@@ -171,7 +173,7 @@ Tracker::Tracker(const char *fileName) :
        }
        HLeft = findHomography( ImageLeftControlPoints, TargetImageControlPointsLeft, CV_RANSAC );
 
-       for( int i = 0; i < good_matchesMiddle.size(); i++ )
+       for( int i = 0; i < (int)good_matchesMiddle.size(); i++ )
        {
            //-- Get the keypoints from the good matches
            ImageMiddleControlPoints.push_back( KeyPointsImageMiddle[ good_matchesMiddle[i].queryIdx ].pt );
@@ -179,7 +181,7 @@ Tracker::Tracker(const char *fileName) :
        }
        HMiddle = findHomography( ImageMiddleControlPoints, TargetImageControlPointsMiddle, CV_RANSAC );
 
-       for( int i = 0; i < good_matchesRight.size(); i++ )
+       for( int i = 0; i < (int)good_matchesRight.size(); i++ )
        {
            //-- Get the keypoints from the good matches
            ImageRightControlPoints.push_back( KeyPointsImageRight[ good_matchesRight[i].queryIdx ].pt );
@@ -304,19 +306,19 @@ Tracker::Tracker(const char *fileName) :
 
            Frame &frame = VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber];
 
-           for (int i = 0; i < NpointsToTrack && !tokens[i*2+2].empty(); i++) {
+           for (int i = 0; i < NUMBER_OF_POINTS_TO_TRACK && !tokens[i*2+2].empty(); i++) {
                frame.TrackedPointsInFrame[i].CoorX  = stoi(tokens[i*2+2]);
                frame.TrackedPointsInFrame[i].CoorY  = stoi(tokens[i*2+3]);
                frame.TrackedPointsInFrame[i].Theta = stod(tokens[i+12]);
                frame.NumberOfTRegisteredPoints++;
            }
-           PointID = std::min(NpointsToTrack-1, frame.NumberOfTRegisteredPoints);
+           PointID = std::min(NUMBER_OF_POINTS_TO_TRACK-1, frame.NumberOfTRegisteredPoints);
        }
        //Create the corrected
 
        for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
            for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
-               for (int PointId=0;PointId<NUMBEROFPOINTSTOTRACK;PointId++){
+               for (int PointId=0;PointId<NUMBER_OF_POINTS_TO_TRACK;PointId++){
                    int x=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorX;
                    int y=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorY;
                    std::vector<Point2f> vec;
@@ -366,21 +368,21 @@ Tracker::Tracker(const char *fileName) :
    }
 }
 
-void Tracker::nextFrame() {
+void Project::nextFrame() {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    currentVideo.GetNextFrame();
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
 
-void Tracker::prevFrame() {
+void Project::prevFrame() {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    VideoToAnalyze[CurrentVideoAnalyzed].GetPreviousFrame();
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
 
-void Tracker::guardar() {
+void Project::save() {
    const char *HEADER = "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
    std::ofstream ofs(ratFile.getOutputFilenameWidthPath(), std::ofstream::out);
    ofs  << HEADER;
@@ -412,8 +414,8 @@ void Tracker::guardar() {
    saveStepRegister(ratFile.getStepRegisterFilename());
 }
 
-void Tracker::traeEsqueleto() {
-   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed]; //!< \todo Tracker debería tener un método currentVideo()
+void Project::bringPreviousSkeleton() {
+   Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed]; //!< \todo Project debería tener un método currentVideo()
    Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame]; //!< \todo Video debería tener un método currentFrame()
    bool sinAsignar = true;
    for (int i = currentVideo.CurrentFrame-1; sinAsignar && i >= 0; i--) {
@@ -423,57 +425,57 @@ void Tracker::traeEsqueleto() {
          for (int i = 0; i < prevFrame.NumberOfTRegisteredPoints; i++) {
             ControlPoint p = prevFrame.TrackedPointsInFrame[i];
 
-            currentVideo.SelectPoint(p.CoorX, p.CoorY, HalfWindowSize, i, CurrentVideoAnalyzed);
+            currentVideo.SelectPoint(p.CoorX, p.CoorY, HALF_WINDOW_SIZE, i, CurrentVideoAnalyzed);
             //currentFrame.SetTrackedPoints(i, p.x, p.y);
          }
-         PointID = std::min(NpointsToTrack-1, currentFrame.NumberOfTRegisteredPoints);
+         PointID = std::min(NUMBER_OF_POINTS_TO_TRACK-1, currentFrame.NumberOfTRegisteredPoints);
          sinAsignar = false;
       }
    }
    if (sinAsignar) {
       currentFrame.NumberOfTRegisteredPoints = 0;
-      PointID = NpointsToTrack-1;
+      PointID = NUMBER_OF_POINTS_TO_TRACK-1;
       int step = currentVideo.Width / 6,
           x    = step,
           y    = currentVideo.Height / 2;
       for (int i = 0; i < 5; i++, x += step) {
-         currentVideo.SelectPoint(x, y, HalfWindowSize, i, CurrentVideoAnalyzed);
+         currentVideo.SelectPoint(x, y, HALF_WINDOW_SIZE, i, CurrentVideoAnalyzed);
       }
    }
 }
 
-Mat Tracker::getFrameWithRectangle() {
+Mat Project::getFrameWithRectangle() {
    return VideoToAnalyze[CurrentVideoAnalyzed].getFrameWithTrackingPoints();
 }
 
-Mat Tracker::getFrameWithSkeleton() {
+Mat Project::getFrameWithSkeleton() {
    return VideoToAnalyze[CurrentVideoAnalyzed].getFrameWithSkeleton();
 }
 
-cv::Mat Tracker::getZoomedRegion(int x, int y, int frameWidth, int frameHeight) {
+cv::Mat Project::getZoomedRegion(int x, int y, int frameWidth, int frameHeight) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   return currentVideo.getZoomedRegion(x2, y2, HalfWindowSize);
+   return currentVideo.getZoomedRegion(x2, y2, HALF_WINDOW_SIZE);
 }
 
-const Video &Tracker::getCurrentVideoAnalyzed() {
+const Video &Project::getCurrentVideoAnalyzed() {
    return VideoToAnalyze[CurrentVideoAnalyzed];
 }
 
-const std::vector<string> &Tracker::getVideoFilenames() {
+const std::vector<string> &Project::getVideoFilenames() {
    return ratFile.getVideoFilenames();
 }
 
-void Tracker::setCurrentVideo(int index) {
+void Project::setCurrentVideo(int index) {
    CurrentVideoAnalyzed = index;
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    PointID = currentVideo.FrameProperties[currentVideo.CurrentFrame].NumberOfTRegisteredPoints;
    PointID = std::min(PointID, 4);
 }
 
-void Tracker::saveCorrectedFile() {
+void Project::saveCorrectedFile() {
     std::ofstream ofsCorrected(ratFile.getOutputFilenameCorrected());
     ofsCorrected << "VideoNumber,Frame,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,T1,T2,T3,T4,T5\n";
     for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++) {
@@ -504,23 +506,23 @@ void Tracker::saveCorrectedFile() {
     ofsCorrected.close();
 }
 
-Video *Tracker::getVideos() {
+std::vector<Video> &Project::getVideos() {
     return VideoToAnalyze;
 }
 
-StepRegister *Tracker::getStepRegisters() {
+std::vector<StepRegister> &Project::getStepRegisters() {
     return stepRegisters;
 }
 
-StepRegister &Tracker::getCurrentStepRegister() {
+StepRegister &Project::getCurrentStepRegister() {
     return stepRegisters[CurrentVideoAnalyzed];
 }
 
-int Tracker::getCurrentVideoIndex() {
+int Project::getCurrentVideoIndex() {
     return CurrentVideoAnalyzed;
 }
 
-void Tracker::loadStepRegister(const char *filename) {
+void Project::loadStepRegister(const char *filename) {
     std::ifstream inFile(filename);
     if (inFile.is_open()) {
         int video, stepBegin, stepEnd;
@@ -534,7 +536,7 @@ void Tracker::loadStepRegister(const char *filename) {
     }
 }
 
-void Tracker::saveStepRegister(const char *filename) {
+void Project::saveStepRegister(const char *filename) {
     std::ofstream outFile(filename);
     if (!outFile.is_open()) return;
     for (int i = 0; i < 3; i++) {
@@ -544,29 +546,33 @@ void Tracker::saveStepRegister(const char *filename) {
     }
 }
 
-string Tracker::getProjectName() {
+const char *Project::getProjectName() {
    return ratFile.getProjectName();
 }
 
-void Tracker::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
+int Project::getSize() {
+   return VideoToAnalyze.size();
+}
+
+void Project::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   currentVideo.SelectPoint(x2, y2, HalfWindowSize, PointID, CurrentVideoAnalyzed);
-   PointID = std::min(PointID+1, NpointsToTrack-1);
+   currentVideo.SelectPoint(x2, y2, HALF_WINDOW_SIZE, PointID, CurrentVideoAnalyzed);
+   PointID = std::min(PointID+1, NUMBER_OF_POINTS_TO_TRACK-1);
 }
 
-void Tracker::setPointOnCurrentFrame(int pointId, int x, int y,
+void Project::setPointOnCurrentFrame(int pointId, int x, int y,
                                             int frameWidth, int frameHeight) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    cv::Mat mat = getFrameWithRectangle();
    int x2 = mat.cols * x / frameWidth,
        y2 = mat.rows * y / frameHeight;
-   currentVideo.SelectPoint(x2, y2, HalfWindowSize, pointId, CurrentVideoAnalyzed);
+   currentVideo.SelectPoint(x2, y2, HALF_WINDOW_SIZE, pointId, CurrentVideoAnalyzed);
 }
 
-void Tracker::deletePointOnCurrentFrame(int pointId) {
+void Project::deletePointOnCurrentFrame(int pointId) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
    auto iter = currentFrame.TrackedPointsInFrame.begin() + pointId;
@@ -576,7 +582,7 @@ void Tracker::deletePointOnCurrentFrame(int pointId) {
    currentFrame.NumberOfTRegisteredPoints = PointID;
 }
 
-int Tracker::getClosestPointID(int x, int y, int frameWidth,
+int Project::getClosestPointID(int x, int y, int frameWidth,
                                       int frameHeight, double maxDistance) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    Frame &currentFrame = currentVideo.FrameProperties[currentVideo.CurrentFrame];
@@ -599,7 +605,7 @@ int Tracker::getClosestPointID(int x, int y, int frameWidth,
    return minId;
 }
 
-void Tracker::setFrame(int Position) {
+void Project::setFrame(int Position) {
    Video &currentVideo = VideoToAnalyze[CurrentVideoAnalyzed];
    currentVideo.GetFrameNumber((double)Position);
    currentVideo.ShowSkeletonInCurrentFrame();

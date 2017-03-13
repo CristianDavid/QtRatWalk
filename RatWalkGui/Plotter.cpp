@@ -20,6 +20,7 @@ Plotter::Plotter(QWidget *parent)
 }
 
 void Plotter::paintEvent(QPaintEvent *event) {
+    (void)event;
     QPainter painter(this);
     painter.setBrush(QColor("whitesmoke"));
     painter.drawRect(-1, -1, size().width()+1, size().height()+1);

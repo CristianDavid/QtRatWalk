@@ -14,40 +14,39 @@ TEMPLATE = app
 include(xlsx/qtxlsx.pri)
 
 SOURCES += main.cpp \
-    RatWalkGui/MainWindow.cpp \
     RatWalkGui/ImageViewer.cpp \
     RatWalkCore/RatFile.cpp \
     RatWalkCore/Frame.cpp \
-    RatWalkCore/Tracker.cpp \
     RatWalkCore/Video.cpp \
     RatWalkGui/Plotter.cpp \
-    RatWalkGui/MdiMainWindow.cpp \
     RatWalkGui/AnglePlotter.cpp \
     RatWalkCore/StepRegister.cpp \
-    RatWalkGui/ExportAnglesDialog.cpp
+    RatWalkGui/ExportAnglesDialog.cpp \
+    RatWalkCore/Constantes.cpp \
+    RatWalkGui/MainWindow.cpp \
+    RatWalkCore/Project.cpp
 
 HEADERS  += \
     RatWalkCore/Points.h \
-    RatWalkGui/MainWindow.h \
     RatWalkGui/cvMat2QtImage.h \
     RatWalkGui/ImageViewer.h \
     RatWalkCore/Constantes.h \
     RatWalkCore/ControlPoint.h \
     RatWalkCore/Frame.h \
-    RatWalkCore/Tracker.h \
     RatWalkCore/RatFile.h \
     RatWalkCore/Video.h \
     RatWalkCore/RatWalkCore.h \
     RatWalkGui/Plotter.h \
-    RatWalkGui/MdiMainWindow.h \
     RatWalkGui/AnglePlotter.h \
     RatWalkCore/StepRegister.h \
-    RatWalkGui/ExportAnglesDialog.h
+    RatWalkGui/ExportAnglesDialog.h \
+    RatWalkGui/MainWindow.h \
+    RatWalkCore/Project.h
 
-FORMS    += RatWalkGui/MainWindow.ui \
-    RatWalkGui/MdiMainWindow.ui \
+FORMS    += \
     RatWalkGui/AnglePlotter.ui \
-    RatWalkGui/ExportAnglesDialog.ui
+    RatWalkGui/ExportAnglesDialog.ui \
+    RatWalkGui/MainWindow.ui
 
 LIBS     += `pkg-config --libs opencv`
 

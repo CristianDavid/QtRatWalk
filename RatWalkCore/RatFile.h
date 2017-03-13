@@ -1,46 +1,49 @@
-#ifndef RATWALKFILE_H
-#define RATWALKFILE_H
+#ifndef RATWALKCORE_RATFILE_H
+#define RATWALKCORE_RATFILE_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace RatWalkCore {
 
 /*!
- * \brief La clase RatFile almacena la información
- *        sobre un proyecto especificado en un archivo .rat.
+ * \brief The RatFile class stores the information about a project defined
+ *        by a .rat file.
  *
- * Esta clase contiene las rutas y los nombres de los archivos utilizados
- * en un proyecto, nombre de videos, archivos de salida, etc.
+ * This class contains the routs and names of the files used in a project,
+ * sucha as videos, ouput files, among others.
  */
 class RatFile {
  public:
    /*!
-    * \brief RatFile Construye a partir de un nombre de archivo.
+    * \brief Creates a RatFile from a filename.
     *
-    *  Este constructor lee un archivo, idealmente con la extensión .rat, y
-    *  obtiene los nombres de los vídeos que forman el proyecto.
+    *  This constructor reads a file, ideally with the .rat extension, and
+    *  gets the name of the videos contained in the project.
     *
-    *  Cada línea del archivo de entrada debe tener el nombre de un video.
+    *  Each line of the input file must have the name of a video.
     *
-    * \see getVideoFilenameWithPath(int)
-    * \see getVideoFilename(int)
+    *  It also calculates the names of the output files and some others.
     *
-    * \param[in] filename el nombre del archivo con la información del proyecto.
+    * \param[in] filename Name of the file with the project information.
     */
    RatFile(const char *filename);
 
    /*!
-    * \brief getVideoFilename regresa el nombre de un video del proyecto
-    * \param[in] idx el índice del video
-    * \return Una cadena con el nombre del video.
-    * \throw std::out_of_range si no se cumple que 0 <= idx < numberOfVideos()
+    * \brief getVideoFilename Gets the name of a video from the project.
+    * \param[in] idx Index of the video.
+    * \param[in] withPath Indicates if the filename should include the path.
+    * \return A string with the name of the video, if withPath is true then the
+    *         name includes the path of the file.
+    * \throw std::out_of_range if the condition 0 <= idx < numberOfVideos() if
+    *        is false.
     */
    const char *getVideoFilename(int idx, bool withPath = true);
 
    /*!
     * \brief getOutputFilename
-    * \return El nombre del archivo de salida, generalmente un .csv
+    * \return The name of a csv file used to store the points and angles on
+    *         each frame.
     */
    const char *getOutputFilename();
 
@@ -48,50 +51,53 @@ class RatFile {
     * \brief getOutputFilenameWidthPath
     * \see getProjectPath()
     * \see getOutputFilename()
-    * \return Nombre del archivo de salida con ruta absoluta
+    * \return Output filename including path.
     */
    const char *getOutputFilenameWidthPath();
 
    /*!
     * \brief getOutputFilenameCorrected
-    * \return Nombre del archivo de salida corregida con ruta absoluta
+    * \return Filename of the corrected output.
     */
    const char *getOutputFilenameCorrected();
 
    /*!
     * \brief getTargetFilename
-    * \return Nombre de la imagen target
-    * \todo Que la imagen deba estar en la misma ruta que el ejecutable
+    * \return Name of the target image used for calibration.
     */
    const char *getTargetFilename();
 
    /*!
     * \brief getProjectName
-    * \return El nombre del archivo con la información del proyecto. Es el mismo
-    *         que el parámetro pasado a RatFile()
+    * \return The name of the project.
     */
    const char *getProjectName();
 
-
    /*!
     * \brief getProjectPath
-    * \return Ruta del proyecto
+    * \return Path of the project.
     */
    const char *getProjectPath();
 
    /*!
     * \brief getVideoFilenames
-    * \return Vector con los nombres de los videos del proyecto
+    * \return Vector with the names of the videos in the project.
     */
    const std::vector<std::string> &getVideoFilenames();
 
    /*!
-    * \brief numberOfVideos() Número de vídeos en el proyecto.
+    * \brief numberOfVideos() Number of videos in the project.
     * \see RatWalkFile()
-    * \return Entero con la cantidad de vídeos que conforman el proyecto.
+    * \return Number of videos in the project.
     */
    int numberOfVideos();
 
+   /*!
+    * \brief getStepRegisterFilename
+    * \param[in] withPath Indicates weather or not the result of the function
+    *            should include the path of the file.
+    * \return Name of the step register file.
+    */
    const char *getStepRegisterFilename(bool withPath = true);
  private:
    std::vector<std::string> videoFilenames;
@@ -103,11 +109,10 @@ class RatFile {
                outputFilenameCorrected,
                outputFilenameCorrectedWithPath,
                targetFilename,
-               targetFilenameWithPath,
                stepRegisterFilename,
                stepRegisterFilenameWithPath;
 };
 
 } // namespace RatWalkCore
 
-#endif // RATWALKFILE_H
+#endif // RATWALKCORE_RATFILE_H

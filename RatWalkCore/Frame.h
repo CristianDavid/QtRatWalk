@@ -7,45 +7,39 @@
 namespace RatWalkCore {
 
 /*!
- * \brief Esta clase representa un frame de un video con sus correspondientes
- * puntos de control
+ * \brief This class represents a frame of a video with the pointes captured
+ *        on it.
  *
  * \see RatWalkCore::ControlPoint
- *
- * \todo Mejorar encapsulamiento de la clase, diseñar la interfaz de tal modo
- *  que sus miembros siempre tenga congruencia
  */
 class Frame {
 public:
    bool IsSet=0;
    int FrameNumber;
-   //RatWalkControlPoint *TrackedPointsInFrame;
    std::vector<ControlPoint> TrackedPointsInFrame;
    int NumberOfTRegisteredPoints=0;
    int NumberOfPointsToTrack;
 
    /*!
-    * \brief SetNumberOfNumberOfPointsToTrack establece el número de puntos de
-    * control que se capturarán en este frame
+    * \brief SetNumberOfNumberOfPointsToTrack sets the number of control points
+    *        that will be captured on this frame.
     *
-    * \param[in] Number Número de puntos que serán capturados en el frame
+    * \param[in] Number Number of points to be captured on this frame
     */
    void SetNumberOfNumberOfPointsToTrack(int Number);
 
    /*!
-    * \brief SetTrackedPoints Establece un punto de control.
-    * \param PointId Posición del punto
-    * \param x Coordenada del punto en x
-    * \param y Coordenada del punto en y
+    * \brief SetTrackedPoints Sets a ControlPoint.
+    * \param[in] PointId Id of the point that will be set
+    * \param[in] x X coordinate of the point
+    * \param[in] y Y coordinate of the point
     */
    void SetTrackedPoints(int PointId, int x, int y);
 
    /*!
-    * \brief AddTrackedPoint agrega un punto de control
-    * \param x Coordenada del punto en x
-    * \param y Coordenada del punto en y
-    * \todo Cambiar NumberOfTRegisteredPoints al agregar
-    * \todo Validar que se no se agreguen más puntos de los que se debe
+    * \brief AddTrackedPoint adds a ControlPoint
+    * \param x X coordinate of the point
+    * \param y Y coordinate of the point
     */
    void AddTrackedPoint(int x, int y);
 };
