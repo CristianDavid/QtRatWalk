@@ -41,7 +41,8 @@ HEADERS  += \
     RatWalkCore/StepRegister.h \
     RatWalkGui/ExportAnglesDialog.h \
     RatWalkGui/MainWindow.h \
-    RatWalkCore/Project.h
+    RatWalkCore/Project.h \
+    RatWalkGui/RatWalkGui.h
 
 FORMS    += \
     RatWalkGui/AnglePlotter.ui \
