@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     RatWalkGui/ExportAnglesDialog.cpp \
     RatWalkCore/Constantes.cpp \
     RatWalkGui/MainWindow.cpp \
-    RatWalkCore/Project.cpp
+    RatWalkCore/Project.cpp \
+    RatWalkCore/Corrector.cpp
 
 HEADERS  += \
     RatWalkCore/Points.h \
@@ -42,7 +43,8 @@ HEADERS  += \
     RatWalkGui/ExportAnglesDialog.h \
     RatWalkGui/MainWindow.h \
     RatWalkCore/Project.h \
-    RatWalkGui/RatWalkGui.h
+    RatWalkGui/RatWalkGui.h \
+    RatWalkCore/Corrector.h
 
 FORMS    += \
     RatWalkGui/AnglePlotter.ui \
