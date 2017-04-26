@@ -13,7 +13,7 @@ Corrector::Corrector(std::vector<Video> &VideoToAnalyze)
  : VideoToAnalyze(VideoToAnalyze) {
 }
 
-void Corrector::performCorrection(std::string targetFilename, int MinHessian) {
+cv::Mat Corrector::performCorrection(std::string targetFilename, int MinHessian) {
    ////////////
    //PERFORM THE CORRECTION OF THE VIDEOS
    /////////////
@@ -214,6 +214,7 @@ void Corrector::performCorrection(std::string targetFilename, int MinHessian) {
    }
 
    //imshow( "FinalResutl", FinalResutl );
+   return FinalResutl;
 
    ////////////
    // FIN DEL PERFORM THE CORRECTION OF THE VIDEOS
