@@ -11,7 +11,7 @@ namespace RatWalkCore {
 class Corrector {
 public:
    Corrector(std::vector<Video> &VideoToAnalyze);
-   void performCorrection(std::string targetFilename);
+   void performCorrection(std::string targetFilename, int MinHessian);
 private:
    std::vector<Video> &VideoToAnalyze;
    cv::Mat TargetImage, TargetImageGray,

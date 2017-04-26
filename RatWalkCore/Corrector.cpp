@@ -13,7 +13,7 @@ Corrector::Corrector(std::vector<Video> &VideoToAnalyze)
  : VideoToAnalyze(VideoToAnalyze) {
 }
 
-void Corrector::performCorrection(std::string targetFilename) {
+void Corrector::performCorrection(std::string targetFilename, int MinHessian) {
    ////////////
    //PERFORM THE CORRECTION OF THE VIDEOS
    /////////////
@@ -44,9 +44,8 @@ void Corrector::performCorrection(std::string targetFilename) {
 
    //Detect KeyPoints using SURF detector
    std::cout<<"Detect KeyPoints using SURF detector";
-   //int MinHessian = 400;
-   //SurfrereDetector detector(MinHessian);
-   cv::SiftFeatureDetector detector;
+   cv::SurfFeatureDetector detector(MinHessian);
+   //cv::SiftFeatureDetector detector;
    std::vector<cv::KeyPoint> keyPointsImageLeft, KeyPointsImageMiddle, KeyPointsImageRight, KeyPointsTargetImage;
 
    detector.detect(ImageLeft, keyPointsImageLeft);
@@ -56,8 +55,8 @@ void Corrector::performCorrection(std::string targetFilename) {
 
    //Calculate descriptors (feature vectors)
    std::cout<<"Calculate descriptors (feature vectors)";
-   //SurfDescriptorExtractor extractor;
-   cv::SiftDescriptorExtractor extractor;
+   cv::SurfDescriptorExtractor extractor;
+   //cv::SiftDescriptorExtractor extractor;
    cv::Mat DescriptorsImageLeft, DescriptorsImageRight, DescriptorsImageMidde,DescriptorsTargetImage;
 
    extractor.compute(ImageLeft, keyPointsImageLeft, DescriptorsImageLeft);

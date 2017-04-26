@@ -48,7 +48,7 @@ Project::Project(const char *fileName) :
    }
 
    loadStepRegister(ratFile.getStepRegisterFilename());
-   corrector.performCorrection(ratFile.getTargetFilename());
+   corrector.performCorrection(ratFile.getTargetFilename(), 400);
 
    //Try to read the previously annotated things
    string lineToParse;
