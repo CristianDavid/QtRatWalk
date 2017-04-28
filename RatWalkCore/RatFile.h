@@ -99,6 +99,8 @@ class RatFile {
     * \return Name of the step register file.
     */
    const char *getStepRegisterFilename(bool withPath = true);
+
+   const char *getCalibrationParametersFilename(bool withPath = true);
  private:
    std::vector<std::string> videoFilenames;
    std::vector<std::string> videoFilenamesWithPath;
@@ -110,7 +112,9 @@ class RatFile {
                outputFilenameCorrectedWithPath,
                targetFilename,
                stepRegisterFilename,
-               stepRegisterFilenameWithPath;
+               stepRegisterFilenameWithPath,
+               calibrationParametersFilename,
+               calibrationParametersFilenameWithPath;
 };
 
 } // namespace RatWalkCore

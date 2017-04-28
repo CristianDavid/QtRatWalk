@@ -206,6 +206,12 @@ class Project {
     */
    int getSize();
 
+   cv::Mat performCalibration(int minHessian);
+   bool saveCalibrationParameters();
+   bool loadCalibrationParameters();
+   void calculateCorrectedData();
+   void setGlobalCorrectionMatrices();
+
  private:
    std::vector<Video> VideoToAnalyze;
    std::vector<StepRegister> stepRegisters;

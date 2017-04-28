@@ -50,6 +50,7 @@ public:
     * \param frameHeight
     */
    void showZoomedRegion(QPoint point, int frameWidth, int frameHeight);
+
 protected:
    bool eventFilter(QObject *watched, QEvent *event);
 
@@ -98,6 +99,8 @@ private slots:
    void on_actionExport_angles_triggered();
 
    void on_actionMostrar_zoom_triggered();
+
+   void on_actionCalibrate_triggered();
 
 private:
    typedef std::shared_ptr<RatWalkCore::Project> ProjectPtr;

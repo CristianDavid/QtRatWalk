@@ -5,8 +5,6 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 
-#include "RatWalkCore/Constantes.h"
-
 namespace RatWalkCore {
 
 Corrector::Corrector(std::vector<Video> &VideoToAnalyze)
@@ -17,7 +15,6 @@ cv::Mat Corrector::performCorrection(std::string targetFilename, int MinHessian)
    ////////////
    //PERFORM THE CORRECTION OF THE VIDEOS
    /////////////
-
    cv::Mat OriginalTargetImage= cv::imread(targetFilename);
    //Mat OriginalTargetImage= imread( "CalibrationShoes.png");
    double Scale=480/(double)OriginalTargetImage.rows;
@@ -147,13 +144,6 @@ cv::Mat Corrector::performCorrection(std::string targetFilename, int MinHessian)
    }
    HRight = findHomography( ImageRightControlPoints, TargetImageControlPointsRight, CV_RANSAC );
 
-   //SaveCalibrationMatrices
-   cv::FileStorage storage("CalibrationParameters.xml", cv::FileStorage::WRITE);
-   storage << "HLeft" << HLeft;
-   storage << "HMiddle" << HMiddle;
-   storage << "HRight" << HRight;
-   storage.release();
-
    // Use the Homography Matrix to warp the images
    cv::Mat resultLeft;
    warpPerspective(Image1,resultLeft,HLeft,cv::Size(TargetImage.cols,TargetImage.rows));
@@ -212,13 +202,44 @@ cv::Mat Corrector::performCorrection(std::string targetFilename, int MinHessian)
          }
       }
    }
-
    //imshow( "FinalResutl", FinalResutl );
    return FinalResutl;
+}
 
-   ////////////
-   // FIN DEL PERFORM THE CORRECTION OF THE VIDEOS
-   /////////////
+bool Corrector::loadCalibrationParametersFromFile(const char *filename) {
+   cv::FileStorage storage(filename, cv::FileStorage::READ);
+   if (storage.isOpened()) {
+      storage["HLeft"]   >> HLeft;
+      storage["HMiddle"] >> HMiddle;
+      storage["HRight"]  >> HRight;
+      return true;
+   } else {
+      return false;
+   }
+}
+
+bool Corrector::saveCalibrationParametersToFile(const char *filename) {
+   cv::FileStorage storage(filename, cv::FileStorage::WRITE);
+   if (storage.isOpened()) {
+      storage << "HLeft"   << HLeft;
+      storage << "HMiddle" << HMiddle;
+      storage << "HRight"  << HRight;
+      return true;
+   } else {
+      return false;
+   }
+}
+
+cv::Mat Corrector::getHLeft() {
+   return HLeft;
+}
+
+cv::Mat Corrector::getHMiddle() {
+   return HMiddle;
+}
+
+cv::Mat Corrector::getHRight() {
+   return HRight;
 }
 
 } // namespace RatWalkCore

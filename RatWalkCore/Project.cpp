@@ -48,7 +48,10 @@ Project::Project(const char *fileName) :
    }
 
    loadStepRegister(ratFile.getStepRegisterFilename());
-   corrector.performCorrection(ratFile.getTargetFilename(), 400);
+   if (!loadCalibrationParameters()) {
+      performCalibration(400);
+      saveCalibrationParameters();
+   }
 
    //Try to read the previously annotated things
    string lineToParse;
@@ -86,52 +89,8 @@ Project::Project(const char *fileName) :
            PointID = std::min(NUMBER_OF_POINTS_TO_TRACK-1, frame.NumberOfTRegisteredPoints);
        }
        //Create the corrected
-
-       for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
-           for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
-               for (int PointId=0;PointId<NUMBER_OF_POINTS_TO_TRACK;PointId++){
-                   int x=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorX;
-                   int y=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorY;
-                   std::vector<Point2f> vec;
-                   std::vector<Point2f> vecCorrected;
-                   vec.push_back(Point2f(x,y));
-                   if (VideoNumber==0)
-                       cv::perspectiveTransform(vec,vecCorrected, HLeft);
-                   if (VideoNumber==1)
-                       cv::perspectiveTransform(vec,vecCorrected, HMiddle);
-                   if (VideoNumber==2)
-                       cv::perspectiveTransform(vec,vecCorrected, HRight);
-
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected=vecCorrected[0].x;
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected=vecCorrected[0].y;
-
-                   if (PointId>0){
-                       double xa=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorXCorrected;
-                       double ya=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorYCorrected;
-                       double xb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected;
-                       double yb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected;
-
-                       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
-                        VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
-                   }
-
-
-                   if (PointId==4){
-                       double xa=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorXCorrected;
-                       double ya=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorYCorrected;
-                       double xb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorXCorrected;
-                       double yb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorYCorrected;
-
-                       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
-                       VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[4].ThetaCorrected=Angle;
-                   }
-
-
-
-
-               }
-           }
-       }
+       setGlobalCorrectionMatrices();
+       calculateCorrectedData();
        //Save the previously Annotated Corrected
         saveCorrectedFile();
    } else {
@@ -323,6 +282,68 @@ const char *Project::getProjectName() {
 
 int Project::getSize() {
    return VideoToAnalyze.size();
+}
+
+Mat Project::performCalibration(int minHessian) {
+   return corrector.performCorrection(ratFile.getTargetFilename(), minHessian);
+}
+
+bool Project::saveCalibrationParameters() {
+   return corrector.saveCalibrationParametersToFile(
+            ratFile.getCalibrationParametersFilename());
+}
+
+bool Project::loadCalibrationParameters() {
+   return corrector.loadCalibrationParametersFromFile(
+            ratFile.getCalibrationParametersFilename());
+}
+
+void Project::calculateCorrectedData() {
+   for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
+       for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
+           for (int PointId=0;PointId<NUMBER_OF_POINTS_TO_TRACK;PointId++){
+               int x=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorX;
+               int y=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorY;
+               std::vector<Point2f> vec;
+               std::vector<Point2f> vecCorrected;
+               vec.push_back(Point2f(x,y));
+               if (VideoNumber==0)
+                   cv::perspectiveTransform(vec,vecCorrected, HLeft);
+               if (VideoNumber==1)
+                   cv::perspectiveTransform(vec,vecCorrected, HMiddle);
+               if (VideoNumber==2)
+                   cv::perspectiveTransform(vec,vecCorrected, HRight);
+
+               VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected=vecCorrected[0].x;
+               VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected=vecCorrected[0].y;
+
+               if (PointId>0){
+                   double xa=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorXCorrected;
+                   double ya=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorYCorrected;
+                   double xb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected;
+                   double yb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected;
+
+                   double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
+                    VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
+               }
+               if (PointId==4){
+                   double xa=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorXCorrected;
+                   double ya=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorYCorrected;
+                   double xb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorXCorrected;
+                   double yb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorYCorrected;
+
+                   double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
+                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[4].ThetaCorrected=Angle;
+               }
+           }
+       }
+   }
+}
+
+void Project::setGlobalCorrectionMatrices() {
+   HLeft   = corrector.getHLeft();
+   HMiddle = corrector.getHMiddle();
+   HRight  = corrector.getHRight();
 }
 
 void Project::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {
