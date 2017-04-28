@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
+#include <climits>
 #include <atomic>
 #include <string>
 #include <thread>
@@ -9,6 +10,8 @@
 #include <QMdiSubWindow>
 #include <QFileInfo>
 #include <QDebug>
+#include <QDialog>
+#include <QInputDialog>
 #include <QFileDialog>
 #include <QEvent>
 #include <QRect>
@@ -25,6 +28,7 @@
 #include "RatWalkGui/AnglePlotter.h"
 #include "RatWalkGui/cvMat2QtImage.h"
 #include "RatWalkGui/ExportAnglesDialog.h"
+#include "RatWalkGui/ShowImageDialog.h"
 #include "xlsxdocument.h"
 
 namespace RatWalkGui {
@@ -575,8 +579,7 @@ void MainWindow::on_actionExport_angles_triggered() {
          this,
          "Exportar ángulos",
           QString(),
-          "Excel (*.xlsx)"
-      );
+          "Excel (*.xlsx)");
       if (!saveFilename.isNull()) {
          if (!saveFilename.endsWith(".xlsx")) {
             saveFilename += ".xlsx";
@@ -593,6 +596,24 @@ void MainWindow::on_actionExport_angles_triggered() {
 void MainWindow::on_actionMostrar_zoom_triggered() {
    zoomedRegionWindow->show();
    zoomedRegionWindow->parentWidget()->show();
+}
+
+void MainWindow::on_actionCalibrate_triggered() {
+   bool ok;
+   int minHessian = QInputDialog::getInt(this, "Calibration parameters",
+                        "Minimum Hessian", 400, 1, INT_MAX, 1, &ok);
+   if (ok) {
+      cv::Mat calibrationResult =
+            getCurrentProject()->performCalibration(minHessian);
+      ShowImageDialog *imageDialog =
+            new ShowImageDialog("Calibration results",
+                                cvMat2QtImage(calibrationResult), this);
+      if (imageDialog->exec() == QDialog::Accepted) {
+         getCurrentProject()->setGlobalCorrectionMatrices();
+         getCurrentProject()->saveCalibrationParameters();
+         getCurrentProject()->calculateCorrectedData();
+      }
+   }
 }
 
 } // namespace RatWalkGui

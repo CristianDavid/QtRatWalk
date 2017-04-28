@@ -20,10 +20,13 @@ RatFile::RatFile(const char *filename) {
    outputFilenameCorrected = projectName + "_Corrected.csv";
    targetFilename          = RESOURCES_FOLDER + dirSeparator +
                               "CalibrationLettersTarget.png";
-   stepRegisterFilename    = projectName + "_StepRegister.csv";
+   stepRegisterFilename          = projectName + "_StepRegister.csv";
+   calibrationParametersFilename = projectName + "_CalibrationParameters.xml";
    outputFilenameWithPath          = projectPath + outputFilename;
    outputFilenameCorrectedWithPath = projectPath + outputFilenameCorrected;
    stepRegisterFilenameWithPath    = projectPath + stepRegisterFilename;
+   calibrationParametersFilenameWithPath =
+         projectPath + calibrationParametersFilename;
 
    std::ifstream inFile(filename);
    std::string line;
@@ -79,6 +82,12 @@ int RatFile::numberOfVideos() {
 const char *RatFile::getStepRegisterFilename(bool withPath) {
    const std::string &res = withPath? stepRegisterFilenameWithPath :
                                       stepRegisterFilename;
+   return res.c_str();
+}
+
+const char *RatFile::getCalibrationParametersFilename(bool withPath) {
+   const std::string &res = withPath? calibrationParametersFilenameWithPath :
+                                      calibrationParametersFilename;
    return res.c_str();
 }
 

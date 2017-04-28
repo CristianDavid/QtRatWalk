@@ -350,8 +350,15 @@
     <addaction name="actionMostrar_zoom"/>
     <addaction name="menuShow_angles"/>
    </widget>
+   <widget class="QMenu" name="menuCalbration">
+    <property name="title">
+     <string>Calibración</string>
+    </property>
+    <addaction name="actionCalibrate"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWindow"/>
+   <addaction name="menuCalbration"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionShow_projects">
@@ -398,6 +405,11 @@
   <action name="actionMostrar_zoom">
    <property name="text">
     <string>Mostrar zoom</string>
+   </property>
+  </action>
+  <action name="actionCalibrate">
+   <property name="text">
+    <string>Calibrar</string>
    </property>
   </action>
  </widget>

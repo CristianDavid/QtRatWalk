@@ -16,12 +16,12 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/nonfree/nonfree.hpp>
+
+#include <QString>
 
 #include "RatWalkCore/Video.h"
 #include "RatWalkCore/Constantes.h"
 #include "RatWalkCore/Points.h"
-#include <QDebug>
 
 using namespace  cv;
 using namespace std;
@@ -31,7 +31,8 @@ constexpr int HALF_WINDOW_SIZE = 9;
 namespace RatWalkCore {
 
 Project::Project(const char *fileName) :
-   ratFile(fileName) {
+   ratFile(fileName),
+   corrector(VideoToAnalyze) {
    CurrentVideoAnalyzed=0;
 
    //Open the video files
@@ -47,237 +48,10 @@ Project::Project(const char *fileName) :
    }
 
    loadStepRegister(ratFile.getStepRegisterFilename());
-
-   ////////////
-   //PERFORM THE CORRECTION OF THE VIDEOS
-   /////////////
-
-       std::string targetFilename = ratFile.getTargetFilename();
-       Mat OriginalTargetImage= imread(targetFilename);
-       //Mat OriginalTargetImage= imread( "CalibrationShoes.png");
-       double Scale=480/(double)OriginalTargetImage.rows;
-       resize(OriginalTargetImage, TargetImage, Size(0,0),Scale,Scale,INTER_LINEAR);
-       cvtColor(TargetImage, TargetImageGrayG, CV_RGB2GRAY);
-
-       Image1=VideoToAnalyze[0].CurrentFrameData.clone(); //! \todo Está casado con que sean tres vídeos
-       Image2=VideoToAnalyze[1].CurrentFrameData.clone();
-       Image3=VideoToAnalyze[2].CurrentFrameData.clone();
-
-
-       //Convert the images to grayScale
-       cout<<"Convert the images to grayScale";
-
-       cvtColor(Image1, ImageLeftG, CV_RGB2GRAY);
-       cvtColor(Image2, ImageMiddleG, CV_RGB2GRAY);
-       cvtColor(Image3, ImageRightG, CV_RGB2GRAY);
-
-       int blursize=1;
-       blur(TargetImageGrayG, TargetImageGray, Size(blursize,blursize));
-       blur(ImageLeftG, ImageLeft, Size(blursize,blursize));
-       blur(ImageMiddleG, ImageMiddle, Size(blursize,blursize));
-       blur(ImageRightG, ImageRight, Size(blursize,blursize));
-
-       //Detect KeyPoints using SURF detector
-       cout<<"Detect KeyPoints using SURF detector";
-       //int MinHessian = 400;
-       //SurfrereDetector detector(MinHessian);
-       SiftFeatureDetector detector;
-       std::vector<KeyPoint> keyPointsImageLeft, KeyPointsImageMiddle, KeyPointsImageRight, KeyPointsTargetImage;
-
-       detector.detect(ImageLeft, keyPointsImageLeft);
-       detector.detect(ImageMiddle, KeyPointsImageMiddle);
-       detector.detect(ImageRight, KeyPointsImageRight);
-       detector.detect(TargetImageGray, KeyPointsTargetImage);
-
-       //Calculate descriptors (feature vectors)
-       cout<<"Calculate descriptors (feature vectors)";
-       //SurfDescriptorExtractor extractor;
-       SiftDescriptorExtractor extractor;
-       Mat DescriptorsImageLeft, DescriptorsImageRight, DescriptorsImageMidde,DescriptorsTargetImage;
-
-       extractor.compute(ImageLeft, keyPointsImageLeft, DescriptorsImageLeft);
-       extractor.compute(ImageMiddle, KeyPointsImageMiddle, DescriptorsImageMidde);
-       extractor.compute(ImageRight, KeyPointsImageRight, DescriptorsImageRight);
-       extractor.compute(TargetImageGray, KeyPointsTargetImage, DescriptorsTargetImage);
-
-       //Maching descriptor vectors using FLANN matcher
-       cout<<"Maching descriptor vectors using FLANN matcher";
-       FlannBasedMatcher matcher;
-       vector<DMatch> MatchesImageLeft,MatchesImageMiddle,MatchesImageRight;
-
-       matcher.match(DescriptorsImageLeft, DescriptorsTargetImage, MatchesImageLeft);
-       matcher.match(DescriptorsImageMidde, DescriptorsTargetImage, MatchesImageMiddle);
-       matcher.match(DescriptorsImageRight, DescriptorsTargetImage, MatchesImageRight);
-
-       //Quick calculation of max and min distances between keypoints
-       cout<<"Quick calculation of max and min distances between keypoints";
-       double max_distLeft = 0; double min_distLeft = 100;
-       for (int i=0;i<DescriptorsImageLeft.rows;i++){
-           double distLeft = MatchesImageLeft[i].distance;
-           if( distLeft < min_distLeft ) min_distLeft = distLeft;
-           if( distLeft > max_distLeft ) max_distLeft = distLeft;
-       }
-       double max_distMiddle= 0; double min_distMiddle= 100;
-       for (int i=0;i<DescriptorsImageMidde.rows;i++){
-           double distMiddle = MatchesImageMiddle[i].distance;
-           if( distMiddle < min_distMiddle) min_distMiddle = distMiddle;
-           if( distMiddle > max_distMiddle ) max_distMiddle = distMiddle;
-       }
-       double max_distRight = 0; double min_distRight = 100;
-       for (int i=0;i<DescriptorsImageRight.rows;i++){
-           double distRight = MatchesImageRight[i].distance;
-           if( distRight< min_distRight) min_distRight = distRight;
-           if( distRight> max_distRight ) max_distRight = distRight;
-       }
-
-
-
-       //Keep only the good matches
-       cout<<"Keep only the good matches";
-       //-- Draw only "good" matches (i.e. whose distance is less than 3*min_dist )
-       std::vector< DMatch > good_matchesLeft,good_matchesMiddle,good_matchesRight;
-
-       for( int i = 0; i < DescriptorsImageLeft.rows; i++ )
-       { if( MatchesImageLeft[i].distance < 3*min_distLeft )
-       { good_matchesLeft.push_back( MatchesImageLeft[i]); }
-       }
-       for( int i = 0; i < DescriptorsImageMidde.rows; i++ )
-       { if( MatchesImageMiddle[i].distance < 3*min_distMiddle )
-       { good_matchesMiddle.push_back( MatchesImageMiddle[i]); }
-       }
-       for( int i = 0; i < DescriptorsImageRight.rows; i++ )
-       { if( MatchesImageRight[i].distance < 3*min_distRight )
-       { good_matchesRight.push_back( MatchesImageRight[i]); }
-       }
-
-
-       Mat img_matches;
-       drawMatches( ImageMiddle , KeyPointsImageMiddle, TargetImageGray, KeyPointsTargetImage,
-                   good_matchesMiddle, img_matches, Scalar::all(-1), Scalar::all(-1),
-                   vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
-
-
-       //  imshow("MatchesLeft",img_matches);
-       //  waitKey(1);
-
-
-
-       //-- Compute the Trasnformation Matrix
-       std::vector<Point2f> ImageLeftControlPoints,ImageRightControlPoints,ImageMiddleControlPoints;
-       std::vector<Point2f> TargetImageControlPointsLeft,TargetImageControlPointsMiddle,TargetImageControlPointsRight;
-       for( int i = 0; i < (int)good_matchesLeft.size(); i++ )
-       {
-           //-- Get the keypoints from the good matches
-           ImageLeftControlPoints.push_back( keyPointsImageLeft[ good_matchesLeft[i].queryIdx ].pt );
-           TargetImageControlPointsLeft.push_back( KeyPointsTargetImage[ good_matchesLeft[i].trainIdx ].pt );
-       }
-       HLeft = findHomography( ImageLeftControlPoints, TargetImageControlPointsLeft, CV_RANSAC );
-
-       for( int i = 0; i < (int)good_matchesMiddle.size(); i++ )
-       {
-           //-- Get the keypoints from the good matches
-           ImageMiddleControlPoints.push_back( KeyPointsImageMiddle[ good_matchesMiddle[i].queryIdx ].pt );
-           TargetImageControlPointsMiddle.push_back( KeyPointsTargetImage[ good_matchesMiddle[i].trainIdx ].pt );
-       }
-       HMiddle = findHomography( ImageMiddleControlPoints, TargetImageControlPointsMiddle, CV_RANSAC );
-
-       for( int i = 0; i < (int)good_matchesRight.size(); i++ )
-       {
-           //-- Get the keypoints from the good matches
-           ImageRightControlPoints.push_back( KeyPointsImageRight[ good_matchesRight[i].queryIdx ].pt );
-           TargetImageControlPointsRight.push_back( KeyPointsTargetImage[ good_matchesRight[i].trainIdx ].pt );
-       }
-       HRight = findHomography( ImageRightControlPoints, TargetImageControlPointsRight, CV_RANSAC );
-
-
-
-
-       //SaveCalibrationMatrices
-       cv::FileStorage storage("CalibrationParameters.xml", cv::FileStorage::WRITE);
-       storage << "HLeft" << HLeft;
-       storage << "HMiddle" << HMiddle;
-       storage << "HRight" << HRight;
-       storage.release();
-
-
-
-
-
-       // Use the Homography Matrix to warp the images
-       cv::Mat resultLeft;
-       warpPerspective(Image1,resultLeft,HLeft,cv::Size(TargetImage.cols,TargetImage.rows));
-       cv::Mat resultMiddle;
-       warpPerspective(Image2,resultMiddle,HMiddle,cv::Size(TargetImage.cols,TargetImage.rows));
-       cv::Mat resultRight;
-       warpPerspective(Image3,resultRight,HRight,cv::Size(TargetImage.cols,TargetImage.rows));
-
-
-       /*
-       cv::imshow("left", resultLeft);
-       cv::imshow("middle", resultMiddle);
-       cv::imshow("right", resultRight);
-       // waitKey(0);
-
-       */
-
-
-       Mat FinalResutl(TargetImage.rows,TargetImage.cols, CV_8UC3, Scalar(0, 0, 0));
-
-
-       for(int i = 0; i < FinalResutl.rows; i++)
-       {
-           for(int j = 0; j < FinalResutl.cols; j++)
-           {
-               uchar PixelValueLeftR=resultLeft.at<cv::Vec3b>(i,j)[0];
-               uchar PixelValueLeftG=resultLeft.at<cv::Vec3b>(i,j)[1];
-               uchar PixelValueLeftB=resultLeft.at<cv::Vec3b>(i,j)[2];
-
-               uchar PixelValueMiddleR=resultMiddle.at<cv::Vec3b>(i,j)[0];
-               uchar PixelValueMiddleG=resultMiddle.at<cv::Vec3b>(i,j)[1];
-               uchar PixelValueMiddleB=resultMiddle.at<cv::Vec3b>(i,j)[2];
-
-               uchar PixelValueRightR=resultRight.at<cv::Vec3b>(i,j)[0];
-               uchar PixelValueRightG=resultRight.at<cv::Vec3b>(i,j)[1];
-               uchar PixelValueRightB=resultRight.at<cv::Vec3b>(i,j)[2];
-
-               float SumaR=0,SumaG=0,SumaB=0,NPix=0;
-
-               if (PixelValueLeftR+PixelValueLeftG+PixelValueLeftB!=0){
-                   SumaR+=(float)PixelValueLeftR;
-                   SumaG+=(float)PixelValueLeftG;
-                   SumaB+=(float)PixelValueLeftB;
-                   NPix++;
-               }
-               if (PixelValueRightR+ PixelValueRightG+PixelValueRightB!=0){
-                   SumaR+=(float)PixelValueRightR;
-                   SumaG+=(float)PixelValueRightG;
-                   SumaB+=(float)PixelValueRightB;
-                   NPix++;
-               }
-               if (PixelValueMiddleR+PixelValueMiddleG+PixelValueMiddleB!=0){
-                   SumaR+=(float)PixelValueMiddleR;
-                   SumaG+=(float)PixelValueMiddleG;
-                   SumaB+=(float)PixelValueMiddleB;
-                   NPix++;
-               }
-               if (NPix>0){
-                   FinalResutl.at<cv::Vec3b>(i,j)[0] =(uchar)round(SumaR/NPix);
-                   FinalResutl.at<cv::Vec3b>(i,j)[1] =(uchar)round(SumaG/NPix);
-                   FinalResutl.at<cv::Vec3b>(i,j)[2] =(uchar)round(SumaB/NPix);
-               }
-
-           }
-       }
-
-
-
-       //imshow( "FinalResutl", FinalResutl );
-
-
-
-   ////////////
-   // FIN DEL PERFORM THE CORRECTION OF THE VIDEOS
-   /////////////
+   if (!loadCalibrationParameters()) {
+      performCalibration(400);
+      saveCalibrationParameters();
+   }
 
    //Try to read the previously annotated things
    string lineToParse;
@@ -315,52 +89,8 @@ Project::Project(const char *fileName) :
            PointID = std::min(NUMBER_OF_POINTS_TO_TRACK-1, frame.NumberOfTRegisteredPoints);
        }
        //Create the corrected
-
-       for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
-           for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
-               for (int PointId=0;PointId<NUMBER_OF_POINTS_TO_TRACK;PointId++){
-                   int x=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorX;
-                   int y=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorY;
-                   std::vector<Point2f> vec;
-                   std::vector<Point2f> vecCorrected;
-                   vec.push_back(Point2f(x,y));
-                   if (VideoNumber==0)
-                       cv::perspectiveTransform(vec,vecCorrected, HLeft);
-                   if (VideoNumber==1)
-                       cv::perspectiveTransform(vec,vecCorrected, HMiddle);
-                   if (VideoNumber==2)
-                       cv::perspectiveTransform(vec,vecCorrected, HRight);
-
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected=vecCorrected[0].x;
-                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected=vecCorrected[0].y;
-
-                   if (PointId>0){
-                       double xa=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorXCorrected;
-                       double ya=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorYCorrected;
-                       double xb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected;
-                       double yb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected;
-
-                       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
-                        VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
-                   }
-
-
-                   if (PointId==4){
-                       double xa=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorXCorrected;
-                       double ya=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorYCorrected;
-                       double xb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorXCorrected;
-                       double yb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorYCorrected;
-
-                       double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
-                       VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[4].ThetaCorrected=Angle;
-                   }
-
-
-
-
-               }
-           }
-       }
+       setGlobalCorrectionMatrices();
+       calculateCorrectedData();
        //Save the previously Annotated Corrected
         saveCorrectedFile();
    } else {
@@ -552,6 +282,68 @@ const char *Project::getProjectName() {
 
 int Project::getSize() {
    return VideoToAnalyze.size();
+}
+
+Mat Project::performCalibration(int minHessian) {
+   return corrector.performCorrection(ratFile.getTargetFilename(), minHessian);
+}
+
+bool Project::saveCalibrationParameters() {
+   return corrector.saveCalibrationParametersToFile(
+            ratFile.getCalibrationParametersFilename());
+}
+
+bool Project::loadCalibrationParameters() {
+   return corrector.loadCalibrationParametersFromFile(
+            ratFile.getCalibrationParametersFilename());
+}
+
+void Project::calculateCorrectedData() {
+   for (int VideoNumber=0;VideoNumber<ratFile.numberOfVideos();VideoNumber++){
+       for (int FrameNumber=0;FrameNumber<VideoToAnalyze[VideoNumber].NumberOfFrames;FrameNumber++){
+           for (int PointId=0;PointId<NUMBER_OF_POINTS_TO_TRACK;PointId++){
+               int x=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorX;
+               int y=VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorY;
+               std::vector<Point2f> vec;
+               std::vector<Point2f> vecCorrected;
+               vec.push_back(Point2f(x,y));
+               if (VideoNumber==0)
+                   cv::perspectiveTransform(vec,vecCorrected, HLeft);
+               if (VideoNumber==1)
+                   cv::perspectiveTransform(vec,vecCorrected, HMiddle);
+               if (VideoNumber==2)
+                   cv::perspectiveTransform(vec,vecCorrected, HRight);
+
+               VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected=vecCorrected[0].x;
+               VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected=vecCorrected[0].y;
+
+               if (PointId>0){
+                   double xa=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorXCorrected;
+                   double ya=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].CoorYCorrected;
+                   double xb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorXCorrected;
+                   double yb=(double)  VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId].CoorYCorrected;
+
+                   double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
+                    VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[PointId-1].ThetaCorrected=Angle;
+               }
+               if (PointId==4){
+                   double xa=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorXCorrected;
+                   double ya=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[0].CoorYCorrected;
+                   double xb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorXCorrected;
+                   double yb=(double) VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[3].CoorYCorrected;
+
+                   double Angle=180*atan2((yb-ya),(xb-xa))/3.1416;
+                   VideoToAnalyze[VideoNumber].FrameProperties[FrameNumber].TrackedPointsInFrame[4].ThetaCorrected=Angle;
+               }
+           }
+       }
+   }
+}
+
+void Project::setGlobalCorrectionMatrices() {
+   HLeft   = corrector.getHLeft();
+   HMiddle = corrector.getHMiddle();
+   HRight  = corrector.getHRight();
 }
 
 void Project::addPointOnCurrentFrame(int x, int y, int frameWidth, int frameHeight) {

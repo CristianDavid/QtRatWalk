@@ -7,6 +7,7 @@
 #include "RatWalkCore/Video.h"
 #include "RatWalkCore/RatFile.h"
 #include "RatWalkCore/StepRegister.h"
+#include "RatWalkCore/Corrector.h"
 
 namespace RatWalkCore {
 
@@ -205,16 +206,19 @@ class Project {
     */
    int getSize();
 
+   cv::Mat performCalibration(int minHessian);
+   bool saveCalibrationParameters();
+   bool loadCalibrationParameters();
+   void calculateCorrectedData();
+   void setGlobalCorrectionMatrices();
+
  private:
-   cv::Mat TargetImage, TargetImageGray,
-           Image1,     Image2,       Image3,
-           ImageLeft,  ImageMiddle,  ImageRight,
-           ImageLeftG, ImageMiddleG, ImageRightG, TargetImageGrayG;
    std::vector<Video> VideoToAnalyze;
+   std::vector<StepRegister> stepRegisters;
    int CurrentVideoAnalyzed = 0;
    int PointID = 0;
    RatFile ratFile;
-   std::vector<StepRegister> stepRegisters;
+   Corrector corrector;
 };
 
 } // namespace RatWalkCore
